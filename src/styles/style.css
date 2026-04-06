@@ -1,0 +1,606 @@
+/* ================= GLOBAL ================= */
+
+:root {
+  --primary: #6a1b9a;       /* IEEE purple */
+  --secondary: #ab47bc;     
+  --accent: #f06292;        
+  --bg: #f9f6fb;            
+  --card: #ffffff;
+  --text: #1a1a1a;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* ================= NAVBAR ================= */
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: white;
+  border-bottom: 1px solid #eee;
+}
+
+nav h2 {
+  color: var(--primary);
+}
+
+a {
+  margin: 0 15px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 500;
+}
+
+a:hover {
+  color: var(--primary);
+}
+
+/* ================= HOME ================= */
+
+.home-container {
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.home-title {
+  font-size: 48px;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.home-subtitle {
+  font-size: 18px;
+  color: gray;
+  margin-bottom: 30px;
+}
+
+.apply-btn {
+  padding: 12px 28px;
+  font-size: 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.apply-btn:hover {
+  background: var(--secondary);
+}
+
+/* ================= DASHBOARD ================= */
+
+.main-title {
+  font-size: 50px;
+  text-align: center;
+  margin-top: 30px;
+  color: var(--primary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+  padding: 40px 80px;
+}
+
+.card {
+  background: var(--card);
+  padding: 30px;
+  border-radius: 15px;
+  border: 1px solid #eee;
+  transition: 0.3s;
+  cursor: pointer;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary);
+  box-shadow: 0 5px 20px rgba(106, 27, 154, 0.2);
+}
+
+.badge {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: var(--accent);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+
+.locked {
+  opacity: 0.5;
+}
+
+/* ================= PROFILE PAGE ================= */
+
+.profile-page {
+  padding: 40px 80px;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+.profile-title {
+  font-size: 70px;
+  font-weight: 900;
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  margin-bottom: 20px;
+  color: var(--primary);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* CARD */
+.profile-card {
+  background: var(--card);
+  padding: 30px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+  border: 1px solid #eee;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.profile-card h2 {
+  color: var(--primary);
+  margin-bottom: 20px;
+}
+
+/* GRID */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+/* INPUTS */
+input, select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fff;
+  color: var(--text);
+  outline: none;
+}
+
+input:focus, select:focus {
+  border-color: var(--primary);
+}
+
+/* BUTTON */
+.save-btn {
+  background: var(--primary);
+  color: white;
+  padding: 12px 28px;
+  border-radius: 8px;
+  border: none;
+  float: right;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.save-btn:hover {
+  background: var(--secondary);
+}
+
+/* ================= DOMAIN PAGE ================= */
+
+.center {
+  text-align: center;
+  padding: 40px;
+}
+
+.center div {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.center div:hover {
+  border-color: var(--primary);
+}
+
+/* ================= TASKS ================= */
+
+.center h2 {
+  color: var(--primary);
+}
+/* ================= DOMAIN PAGE (PREMIUM) ================= */
+
+.domain-page {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.domain-title {
+  font-size: 40px;
+  color: var(--primary);
+  margin-bottom: 40px;
+}
+
+/* GRID */
+.domain-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+  padding: 0 100px;
+}
+
+/* CARD */
+.domain-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+  border: 1px solid #eee;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.domain-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary);
+  box-shadow: 0 5px 20px rgba(106, 27, 154, 0.2);
+}
+
+/* ICON */
+.domain-card .icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+/* IMAGE ICON */
+.domain-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  margin-bottom: 10px;
+  border-radius: 10px;
+}
+
+/* SELECTED */
+.domain-card.selected {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+/* BUTTON */
+.confirm-btn {
+  margin-top: 40px;
+  padding: 12px 28px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.confirm-btn:hover {
+  background: var(--secondary);
+}
+/* ================= SELECTED DOMAINS ================= */
+
+.selected-domains {
+  text-align: center;
+  margin: 20px;
+}
+
+.domain-tags span {
+  display: inline-block;
+  background: var(--primary);
+  color: white;
+  padding: 8px 15px;
+  margin: 5px;
+  border-radius: 20px;
+}
+/* ================= PROGRESS BAR ================= */
+
+.progress-wrapper {
+  width: 60%;
+  margin: 20px auto;
+  text-align: center;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 15px;
+  background: #eee;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.4s ease;
+}
+
+.progress-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text);
+}
+
+/* PROFILE SUMMARY CLEAN */
+.profile-summary {
+  text-align: center;
+  margin-top: 20px;
+}
+/* ================= TASKS PAGE ================= */
+
+.tasks-page {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.tasks-title {
+  font-size: 40px;
+  color: var(--primary);
+  margin-bottom: 30px;
+}
+
+.tasks-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* TASK CARD */
+.task-card {
+  background: white;
+  width: 60%;
+  padding: 20px;
+  margin: 10px;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  text-align: left;
+}
+
+/* BUTTON */
+.complete-btn {
+  margin-top: 30px;
+  padding: 12px 28px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.complete-btn:hover {
+  background: var(--secondary);
+}
+
+/* ================= DOMAIN INFO PAGE ================= */
+
+.domain-info-page {
+  padding: 50px 80px;
+}
+
+.domain-info-title {
+  text-align: center;
+  font-size: 45px;
+  color: var(--primary);
+  margin-bottom: 40px;
+}
+
+/* GRID */
+.domain-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 25px;
+}
+
+/* CARD */
+.domain-info-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  transition: 0.3s;
+}
+
+.domain-info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+}
+
+.domain-info-card h2 {
+  color: var(--primary);
+}
+
+/* DESCRIPTION */
+.desc {
+  margin: 10px 0;
+  color: #555;
+}
+
+/* CONTACT */
+.contact {
+  margin-top: 15px;
+  font-size: 14px;
+}
+.apply-page {
+  padding: 60px 80px;
+}
+
+.apply-title {
+  font-size: 45px;
+  color: var(--primary);
+}
+
+.apply-intro {
+  margin: 20px 0;
+  font-size: 16px;
+  color: #555;
+}
+
+.apply-section {
+  margin: 30px 0;
+}
+
+.apply-section h2 {
+  color: var(--primary);
+}
+
+.apply-section ul {
+  padding-left: 20px;
+}
+
+.apply-section li {
+  margin: 8px 0;
+}
+
+/* QUESTIONS TEXT */
+.question {
+  margin: 15px 0;
+  line-height: 1.6;
+}
+
+/* INSTRUCTION BOX */
+.instruction-box {
+  margin-top: 25px;
+  padding: 15px;
+  background: #f3e5f5;
+  border-left: 5px solid var(--primary);
+  border-radius: 8px;
+}
+
+/* UPLOAD */
+.upload-section {
+  margin-top: 25px;
+}
+
+.upload-section input {
+  margin-bottom: 10px;
+}
+/* QUESTIONS PAGE */
+.questions-page {
+  padding: 50px 100px;
+}
+
+/* QUESTIONS */
+.question {
+  margin: 15px 0;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+/* INSTRUCTION */
+.instruction-box {
+  margin-top: 25px;
+  padding: 15px;
+  background: #f3e5f5;
+  border-left: 5px solid var(--primary);
+  border-radius: 8px;
+}
+
+/* UPLOAD BOX */
+.upload-box {
+  margin-top: 30px;
+  padding: 20px;
+  border: 2px dashed var(--primary);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.upload-box input {
+  margin-bottom: 15px;
+}
+
+.upload-box button {
+  padding: 12px 25px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.upload-box button:hover {
+  background: var(--secondary);
+}
+/* FINAL MESSAGE */
+.final-message {
+  margin: 20px auto;
+  padding: 15px;
+  width: 60%;
+  text-align: center;
+  background: #e8f5e9;
+  border-left: 5px solid green;
+  border-radius: 8px;
+}
+/* INTERVIEW PAGE */
+.interview-page {
+  height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.interview-card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  text-align: center;
+  width: 50%;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.interview-card h1 {
+  color: var(--primary);
+}
+
+.sub-text {
+  margin-top: 10px;
+  color: #777;
+}
+/* LOGIN PAGE */
+.login-page {
+  height: 90vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  text-align: center;
+  width: 350px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+}
+
+.login-card input {
+  width: 100%;
+  padding: 10px;
+  margin: 20px 0;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+.login-card button {
+  padding: 10px 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+}
