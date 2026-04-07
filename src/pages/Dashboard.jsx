@@ -1,21 +1,27 @@
+import { useState, useEffect } from "react";
 import Card from "../components/Card";
 
 function Dashboard() {
-  const profile = JSON.parse(localStorage.getItem("profile"));
-  const domains = JSON.parse(localStorage.getItem("domains"));
+  const [profile, setProfile] = useState(null);
+  const [domains, setDomains] = useState([]);
+
+  useEffect(() => {
+    const storedProfile = JSON.parse(localStorage.getItem("profile"));
+    const storedDomains = JSON.parse(localStorage.getItem("domains")) || [];
+
+    setProfile(storedProfile);
+    setDomains(storedDomains);
+  }, []);
 
   const cards = [
     { title: "Profile", status: "available", path: "/profile" },
     { title: "Domain Selection", status: profile ? "available" : "locked", path: "/domain" },
-    { title: "Tasks", status: domains ? "available" : "locked", path: "/tasks" },
-
-    // 🔥 NEW INTERVIEW CARD
+    { title: "Tasks", status: domains.length ? "available" : "locked", path: "/tasks" },
     { title: "Interview", status: "locked", path: "/interview" }
   ];
 
   return (
     <div>
-
       <h1 className="main-title">DASHBOARD</h1>
 
       {/* Welcome */}
@@ -25,8 +31,8 @@ function Dashboard() {
         </div>
       )}
 
-      {/* Selected Domain */}
-      {domains && domains.length > 0 && (
+      {/* Domains */}
+      {domains.length > 0 && (
         <div className="selected-domains">
           <h3>Your Selected Domain</h3>
           <div className="domain-tags">
@@ -43,7 +49,6 @@ function Dashboard() {
           <Card key={i} {...c} />
         ))}
       </div>
-
     </div>
   );
 }

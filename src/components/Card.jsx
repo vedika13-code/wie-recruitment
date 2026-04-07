@@ -1,14 +1,12 @@
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 
-function Card({ title, status }) {
+function Card({ title, status, path }) {
   const navigate = useNavigate();
 
   const handleClick = () => {
     if (status === "locked") return;
-
-    if (title === "Profile") navigate("/profile");
-    if (title === "Domain Selection") navigate("/domain");
-    if (title === "Tasks") navigate("/tasks");
+    navigate(path);
   };
 
   return (
@@ -21,5 +19,12 @@ function Card({ title, status }) {
     </div>
   );
 }
+
+// ✅ Props validation
+Card.propTypes = {
+  title: PropTypes.string.isRequired,
+  status: PropTypes.string.isRequired,
+  path: PropTypes.string.isRequired,
+};
 
 export default Card;

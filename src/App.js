@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import PropTypes from "prop-types";
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -9,19 +11,39 @@ import TaskQuestions from "./pages/TaskQuestions";
 import DomainInfo from "./pages/DomainInfo";
 import Interview from "./pages/Interview";
 import Login from "./pages/Login";
-import Apply from "./pages/Apply"; // ✅ IMPORTANT
+import Apply from "./pages/Apply";
 
 import Navbar from "./components/Navbar";
 
 import "./styles/style.css";
 
-// 🔐 Protected Route
+
+// 🔐 Protected Route (WITH STATE + HOOKS)
 const ProtectedRoute = ({ children }) => {
-  const user = JSON.parse(localStorage.getItem("user"));
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    setUser(storedUser);
+    setLoading(false);
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+
   return user ? children : <Navigate to="/login" />;
 };
 
+// ✅ Props Validation
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+
 function App() {
+  // ✅ Example global state
+  const [appName] = useState("IEEE WIE Recruitment Portal");
+
   return (
     <Router>
       <Routes>
@@ -33,7 +55,7 @@ function App() {
         <Route path="/" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <Home />
             </>
           </ProtectedRoute>
@@ -43,7 +65,7 @@ function App() {
         <Route path="/apply" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <Apply />
             </>
           </ProtectedRoute>
@@ -53,7 +75,7 @@ function App() {
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <Dashboard />
             </>
           </ProtectedRoute>
@@ -63,17 +85,17 @@ function App() {
         <Route path="/profile" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <Profile />
             </>
           </ProtectedRoute>
         } />
 
-        {/* DOMAIN SELECTION */}
+        {/* DOMAIN */}
         <Route path="/domain" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <Domain />
             </>
           </ProtectedRoute>
@@ -83,7 +105,7 @@ function App() {
         <Route path="/tasks" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <Tasks />
             </>
           </ProtectedRoute>
@@ -93,7 +115,7 @@ function App() {
         <Route path="/tasks/:domain" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <TaskQuestions />
             </>
           </ProtectedRoute>
@@ -103,7 +125,7 @@ function App() {
         <Route path="/domains-info" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <DomainInfo />
             </>
           </ProtectedRoute>
@@ -113,7 +135,7 @@ function App() {
         <Route path="/interview" element={
           <ProtectedRoute>
             <>
-              <Navbar />
+              <Navbar title={appName} />
               <Interview />
             </>
           </ProtectedRoute>
