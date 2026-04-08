@@ -1,7 +1,11 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 function Apply() {
   const navigate = useNavigate();
+
+  
+  const [clickCount, setClickCount] = useState(0);
 
   return (
     <div className="apply-page">
@@ -38,13 +42,21 @@ function Apply() {
         </ul>
       </div>
 
-      {/* CTA */}
+      {}
       <button 
         className="apply-btn"
-        onClick={() => navigate("/profile")}
+        onClick={() => {
+          setClickCount(clickCount + 1); 
+          navigate("/profile");
+        }}
       >
         Start Application
       </button>
+
+      {}
+      <p style={{ fontSize: "12px", marginTop: "10px" }}>
+        Button clicked: {clickCount} times
+      </p>
 
     </div>
   );
