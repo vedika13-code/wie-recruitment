@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import PropTypes from "prop-types";
 
-// ✅ correct imports
+// images
 import tech from "../assets/technical.png";
 import proj from "../assets/projects.png";
 import mgmt from "../assets/management.png";
@@ -9,43 +10,44 @@ import edit from "../assets/editorial.png";
 import design from "../assets/design.png";
 import pub from "../assets/publicity.png";
 
-function Domain() {
+function Domain({ title }) {
   const navigate = useNavigate();
 
-  const domains = [
-    { name: "Technical", img: tech },
-    { name: "Projects", img: proj },
-    { name: "Management", img: mgmt },
-    { name: "Editorial", img: edit },
-    { name: "Design", img: design },
-    { name: "Publicity", img: pub }
-  ];
-
-  // ✅ single selection (not array)
+  //  State
+  const [domains, setDomains] = useState([]);
   const [selected, setSelected] = useState("");
 
-  // ✅ toggle logic (only one allowed)
+  //  useEffect (load data)
+  useEffect(() => {
+    const data = [
+      { name: "Technical", img: tech },
+      { name: "Projects", img: proj },
+      { name: "Management", img: mgmt },
+      { name: "Editorial", img: edit },
+      { name: "Design", img: design },
+      { name: "Publicity", img: pub }
+    ];
+
+    setDomains(data);
+  }, []);
+
+  //  toggle logic
   const toggle = (d) => {
-    if (selected === d) {
-      setSelected(""); // deselect
-    } else {
-      setSelected(d);
-    }
+    setSelected(prev => (prev === d ? "" : d));
   };
 
+  //  submit
   const handleSubmit = () => {
     if (!selected) {
       alert("Please select a domain");
       return;
     }
 
-    // store as array (so rest of app doesn't break)
     localStorage.setItem("domains", JSON.stringify([selected]));
-
     navigate("/dashboard");
   };
 
-  // 🔥 Clear Profile + Domains
+  //  clear everything
   const handleClearAll = () => {
     const confirmClear = window.confirm(
       "This will delete your profile and selected domain. Continue?"
@@ -66,9 +68,10 @@ function Domain() {
   return (
     <div className="domain-page">
 
-      {/* ✅ updated title */}
-      <h1 className="domain-title">Select a Domain</h1>
+      {/*  Props usage */}
+      <h1 className="domain-title">{title}</h1>
 
+      {/* Dynamic rendering */}
       <div className="domain-grid">
         {domains.map((d, i) => (
           <div
@@ -82,11 +85,12 @@ function Domain() {
         ))}
       </div>
 
+      {/*  Button */}
       <button className="confirm-btn" onClick={handleSubmit}>
         Confirm Selection
       </button>
 
-      {/* 🔥 CLEAR BUTTON */}
+      {/*  Clear Button */}
       <button
         type="button"
         onClick={handleClearAll}
@@ -107,5 +111,15 @@ function Domain() {
     </div>
   );
 }
+
+
+Domain.propTypes = {
+  title: PropTypes.string,
+};
+
+
+Domain.defaultProps = {
+  title: "Select a Domain",
+};
 
 export default Domain;
