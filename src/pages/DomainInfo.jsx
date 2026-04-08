@@ -1,11 +1,15 @@
-import { useState, useEffect } from "react";
-import PropTypes from "prop-types";
+import { useState, useEffect } from "react"; // Hooks: useState (state), useEffect (lifecycle)
+import PropTypes from "prop-types"; // (Imported but not used here)
 
-function DomainInfo() {
+function DomainInfo() { // Functional Component (Domain Info page)
 
+  // State: stores list of domain details
   const [domains, setDomains] = useState([]);
 
+  // useEffect: runs once when component loads
   useEffect(() => {
+
+    // Static data (domain details)
     const data = [
       {
         name: "Technical",
@@ -65,24 +69,29 @@ We coordinate, organize, and handle logistics from start to finish.`,
       }
     ];
 
-    setDomains(data);
+    setDomains(data); // Updating state → triggers re-render
   }, []);
 
+  // JSX: UI structure
   return (
-    <div className="domain-info-page">
+    <div className="domain-info-page"> {/* Styling using CSS class */}
 
       <h1 className="domain-info-title">Our Domains</h1>
 
+      {/* Dynamic rendering using map */}
       <div className="domain-info-grid">
-        {domains.map((d, i) => (
-          <div key={i} className="domain-info-card">
+        {domains.map((d, i) => ( // Loop through domains array
+          <div key={i} className="domain-info-card"> {/* Key required for list */}
 
+            {/* Display domain name */}
             <h2>{d.name}</h2>
 
+            {/* Splitting description into paragraphs */}
             {d.desc.split("\n\n").map((para, index) => (
-              <p key={index} className="desc">{para}</p>
+              <p key={index} className="desc">{para}</p> // Nested mapping
             ))}
 
+            {/* Contact info */}
             <div className="contact">
               <p><b>Domain Head:</b> {d.head}</p>
               <p><b>Phone:</b> {d.phone}</p>
@@ -96,4 +105,4 @@ We coordinate, organize, and handle logistics from start to finish.`,
   );
 }
 
-export default DomainInfo;
+export default DomainInfo; // Export component

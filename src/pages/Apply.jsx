@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-function Apply() {
-  const navigate = useNavigate();
+function Apply() {//A functional component representing your Apply page,Shows recruitment info,Displays domains + instructions,Has a button to start application
+  const navigate = useNavigate();//hooks Allows navigation using code
 
   
   const [clickCount, setClickCount] = useState(0);
@@ -47,7 +47,7 @@ function Apply() {
         className="apply-btn"
         onClick={() => {
           setClickCount(clickCount + 1); 
-          navigate("/profile");
+          navigate("/profile");//When user clicks button → goes to Profile page
         }}
       >
         Start Application
@@ -63,3 +63,11 @@ function Apply() {
 }
 
 export default Apply;
+//Page loads:
+//Shows recruitment info
+/////clickCount = 0
+//User clicks button:
+//clickCount → increases
+//UI updates instantly
+//Then:
+//Navigates to /profile

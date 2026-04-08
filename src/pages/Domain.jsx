@@ -1,8 +1,8 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import PropTypes from "prop-types";
+import { useState, useEffect } from "react"; // Hooks: useState (state), useEffect (lifecycle)
+import { useNavigate } from "react-router-dom"; // Hook for routing/navigation
+import PropTypes from "prop-types"; // Props validation
 
-// images
+// images (assets import)
 import tech from "../assets/technical.png";
 import proj from "../assets/projects.png";
 import mgmt from "../assets/management.png";
@@ -10,14 +10,14 @@ import edit from "../assets/editorial.png";
 import design from "../assets/design.png";
 import pub from "../assets/publicity.png";
 
-function Domain({ title }) {
-  const navigate = useNavigate();
+function Domain({ title }) { // Functional Component + Props
+  const navigate = useNavigate(); // Hook: used for navigation
 
-  //  State
+  // State: stores domain list and selected domain
   const [domains, setDomains] = useState([]);
   const [selected, setSelected] = useState("");
 
-  //  useEffect (load data)
+  // useEffect: runs once when component loads (like componentDidMount)
   useEffect(() => {
     const data = [
       { name: "Technical", img: tech },
@@ -28,73 +28,80 @@ function Domain({ title }) {
       { name: "Publicity", img: pub }
     ];
 
-    setDomains(data);
+    setDomains(data); // Updating state → triggers re-render
   }, []);
 
-  //  toggle logic
+  // Event handling + state logic (toggle selection)
   const toggle = (d) => {
-    setSelected(prev => (prev === d ? "" : d));
+    setSelected(prev => (prev === d ? "" : d)); // Select/unselect domain
   };
 
-  //  submit
+  // Event handling (submit button)
   const handleSubmit = () => {
+    // Validation
     if (!selected) {
-      alert("Please select a domain");
+      alert("Please select a domain"); // Browser API
       return;
     }
 
+    // LocalStorage: saving selected domain
     localStorage.setItem("domains", JSON.stringify([selected]));
+
+    // Routing: navigate to dashboard
     navigate("/dashboard");
   };
 
-  //  clear everything
+  // Event handling (clear all data)
   const handleClearAll = () => {
+    // Confirmation dialog
     const confirmClear = window.confirm(
       "This will delete your profile and selected domain. Continue?"
     );
 
     if (confirmClear) {
+      // LocalStorage: removing stored data
       localStorage.removeItem("profile");
       localStorage.removeItem("domains");
       localStorage.removeItem("user");
 
-      alert("Data cleared");
+      alert("Data cleared"); // Browser API
 
-      navigate("/login");
-      window.location.reload();
+      navigate("/login"); // Routing
+      window.location.reload(); // Force reload
     }
   };
 
+  // JSX: UI structure
   return (
-    <div className="domain-page">
+    <div className="domain-page"> {/* Styling using CSS class */}
 
-      {/*  Props usage */}
+      {/* Props usage */}
       <h1 className="domain-title">{title}</h1>
 
-      {/* Dynamic rendering */}
+      {/* Dynamic rendering (array mapping) */}
       <div className="domain-grid">
-        {domains.map((d, i) => (
+        {domains.map((d, i) => ( // Loop through domains
           <div
-            key={i}
-            className={`domain-card ${selected === d.name ? "selected" : ""}`}
-            onClick={() => toggle(d.name)}
+            key={i} // Key for list rendering
+            className={`domain-card ${selected === d.name ? "selected" : ""}`} // Dynamic styling
+            onClick={() => toggle(d.name)} // Event handling
           >
-            <img src={d.img} alt={d.name} className="domain-img" />
+            <img src={d.img} alt={d.name} className="domain-img" /> {/* Image rendering */}
             <h3>{d.name}</h3>
           </div>
         ))}
       </div>
 
-      {/*  Button */}
+      {/* Button with event handler */}
       <button className="confirm-btn" onClick={handleSubmit}>
         Confirm Selection
       </button>
 
-      {/*  Clear Button */}
+      {/* Inline styling + event handling */}
       <button
         type="button"
         onClick={handleClearAll}
-        style={{
+        style={{ // Inline styling in React
           marginTop: "15px",
           padding: "12px",
           backgroundColor: "red",
@@ -112,14 +119,14 @@ function Domain({ title }) {
   );
 }
 
-
+// Props validation
 Domain.propTypes = {
   title: PropTypes.string,
 };
 
-
+// Default props (used if no title is passed)
 Domain.defaultProps = {
   title: "Select a Domain",
 };
 
-export default Domain;
+export default Domain; // Export component

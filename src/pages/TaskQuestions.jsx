@@ -1,12 +1,18 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom"; // Hooks: routing (URL params + navigation)
+import { useState } from "react"; // Hook: state management
 
-function TaskQuestions() {
+function TaskQuestions() { // Functional Component (Task Questions page)
+
+  // Routing: get dynamic value from URL (e.g., /tasks/Technical)
   const { domain } = useParams();
+
+  // Routing: navigation between pages
   const navigate = useNavigate();
 
+  // State: stores uploaded file
   const [file, setFile] = useState(null);
 
+  // Static data (questions based on domain)
   const questionsMap = {
     Technical: [
       "How do you see technology creating inclusive communities?",
@@ -46,29 +52,34 @@ function TaskQuestions() {
     ]
   };
 
+  // Dynamic data selection based on URL param
   const questions = questionsMap[domain] || [];
 
+  // Event handling: form submission
   const handleSubmit = () => {
+
+    // Validation: check if file uploaded
     if (!file) {
-      alert("Please upload your PDF");
+      alert("Please upload your PDF"); // Browser API
       return;
     }
 
-    // 🔥 ALWAYS GET FRESH DATA
+    // LocalStorage: get selected domains
     const selectedDomains =
       JSON.parse(localStorage.getItem("domains")) || [];
 
+    // LocalStorage: get completed domains
     let completedDomains =
       JSON.parse(localStorage.getItem("completedDomains")) || [];
 
     const currentDomain = domain.trim();
 
-    // ✅ Add current domain if not already completed
+    // Logic: add current domain if not already completed
     if (!completedDomains.includes(currentDomain)) {
       completedDomains.push(currentDomain);
     }
 
-    // ✅ Save updated completed domains
+    // Save updated completed domains
     localStorage.setItem(
       "completedDomains",
       JSON.stringify(completedDomains)
@@ -76,49 +87,55 @@ function TaskQuestions() {
 
     alert("PDF uploaded successfully ");
 
-    // 🔥 FIND REMAINING DOMAINS
+    // Logic: find remaining domains
     const remainingDomains = selectedDomains.filter(
       (d) => !completedDomains.includes(d)
     );
 
+    // Debugging (console logs)
     console.log("Selected:", selectedDomains);
     console.log("Completed:", completedDomains);
     console.log("Remaining:", remainingDomains);
 
-    // ✅ REDIRECT LOGIC (FIXED)
+    // Routing logic (conditional navigation)
     if (remainingDomains.length > 0) {
-      navigate(`/tasks/${remainingDomains[0]}`);
+      navigate(`/tasks/${remainingDomains[0]}`); // Go to next domain task
     } else {
-      localStorage.setItem("tasksDone", true);
-      navigate("/interview");
+      localStorage.setItem("tasksDone", true); // Save completion flag
+      navigate("/interview"); // Go to interview page
     }
   };
 
+  // JSX: UI structure
   return (
-    <div className="questions-page">
+    <div className="questions-page"> {/* Styling */}
 
+      {/* Dynamic heading */}
       <h1>{domain} Domain Questions</h1>
 
+      {/* Dynamic rendering (mapping questions) */}
       <div className="questions-container">
-        {questions.map((q, i) => (
-          <p key={i} className="question">
+        {questions.map((q, i) => ( // Loop through questions
+          <p key={i} className="question"> {/* Key required */}
             <b>{i + 1}.</b> {q}
           </p>
         ))}
       </div>
 
+      {/* Static JSX content */}
       <div className="instruction-box">
         📌 Upload all answers in a <b>single PDF</b>
       </div>
 
+      {/* File upload + event handling */}
       <div className="upload-box">
         <input
           type="file"
           accept="application/pdf"
-          onChange={(e) => setFile(e.target.files[0])}
+          onChange={(e) => setFile(e.target.files[0])} // State update
         />
 
-        <button onClick={handleSubmit}>
+        <button onClick={handleSubmit}> {/* Event handling */}
           Submit PDF
         </button>
       </div>
@@ -127,4 +144,4 @@ function TaskQuestions() {
   );
 }
 
-export default TaskQuestions;
+export default TaskQuestions; // Export component
