@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wie
+      POSTGRES_PASSWORD: wie_local_dev
+      POSTGRES_DB: wie_recruitment
+    ports:
+      - "5432:5432"
+    volumes:
+      - wie_pgdata:/var/lib/postgresql/data
+
+volumes:
+  wie_pgdata:

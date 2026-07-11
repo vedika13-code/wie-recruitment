@@ -1,3 +1,33 @@
+# IEEE WIE Recruitment Portal
+
+Frontend is a Create React App (below). Backend lives in `server/` — see
+[docs/](./docs/) (PRD, architecture, decisions log, roadmap) for what it does and why.
+
+## Backend setup (server/)
+
+```bash
+# 1. Start local Postgres (Docker required)
+docker compose up -d postgres
+
+# 2. Install backend deps
+cd server
+npm install
+
+# 3. Configure env (defaults already match docker-compose.yml)
+cp .env.example .env
+
+# 4. Create/apply the database schema
+npx prisma migrate dev
+
+# 5. Run the server
+npm run dev
+```
+
+Then confirm it's alive: `curl http://localhost:4000/api/health` should return
+`{"status":"ok"}`.
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).

@@ -1,0 +1,186 @@
+// Prisma schema — mirrors the ER diagram in docs/ARCHITECTURE.md §3.
+// If you change a model here, update that diagram too so they stay in sync.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Cycle {
+  id                  String    @id @default(uuid())
+  name                String // e.g. "2026"
+  status              String    @default("draft") // draft, open, closed
+  applicationDeadline DateTime?
+  taskDeadline        DateTime?
+  createdAt           DateTime  @default(now())
+
+  applications      Application[]
+  domainAssignments DomainAssignment[]
+  domainTaskConfigs DomainTaskConfig[]
+  taskQuestions     TaskQuestion[]
+  interviewSlots    InterviewSlot[]
+}
+
+model User {
+  id             String    @id @default(uuid())
+  googleId       String?   @unique
+  email          String    @unique
+  name           String?
+  phone          String?
+  regNo          String?
+  branch         String?
+  specialization String?
+  age            Int?
+  residenceType  String? // Hosteller, Day Scholar
+  githubUrl      String? // optional
+  linkedinUrl    String? // optional
+  portfolioUrl   String? // optional
+  role           String    @default("applicant") // applicant, admin, super_admin
+  addedById      String? // which super_admin added this admin; null for applicants
+  addedBy        User?     @relation("AdminAddedBy", fields: [addedById], references: [id])
+  addedAdmins    User[]    @relation("AdminAddedBy")
+  createdAt      DateTime  @default(now())
+
+  applications      Application[]
+  domainAssignments DomainAssignment[]
+  createdSlots      InterviewSlot[]    @relation("SlotCreatedBy")
+}
+
+model Domain {
+  id          String  @id @default(uuid())
+  name        String  @unique // Technical, Projects, Management, Editorial, Design, Publicity
+  description String?
+
+  domainAssignments  DomainAssignment[]
+  taskQuestions      TaskQuestion[]
+  applicationDomains ApplicationDomain[]
+  submissions        Submission[]
+  domainTaskConfigs  DomainTaskConfig[]
+}
+
+// Domain head contact info shown on the Domain Info page — deliberately NOT the same
+// thing as an admin login (see ARCHITECTURE.md §3 notes).
+model DomainAssignment {
+  id       String  @id @default(uuid())
+  cycleId  String
+  cycle    Cycle   @relation(fields: [cycleId], references: [id])
+  domainId String
+  domain   Domain  @relation(fields: [domainId], references: [id])
+  userId   String
+  user     User    @relation(fields: [userId], references: [id])
+  phone    String?
+
+  @@unique([cycleId, domainId])
+}
+
+// Admin-editable per cycle: does this domain need a work artifact, and what kind.
+model DomainTaskConfig {
+  id            String  @id @default(uuid())
+  cycleId       String
+  cycle         Cycle   @relation(fields: [cycleId], references: [id])
+  domainId      String
+  domain        Domain  @relation(fields: [domainId], references: [id])
+  artifactType  String  @default("none") // none, code_link, code_file, blog_link, design_file
+  artifactLabel String? // e.g. "GitHub repo link"
+
+  @@unique([cycleId, domainId])
+}
+
+model TaskQuestion {
+  id           String @id @default(uuid())
+  cycleId      String
+  cycle        Cycle  @relation(fields: [cycleId], references: [id])
+  domainId     String
+  domain       Domain @relation(fields: [domainId], references: [id])
+  questionText String
+  order        Int
+
+  answers Answer[]
+}
+
+model Application {
+  id        String   @id @default(uuid())
+  cycleId   String
+  cycle     Cycle    @relation(fields: [cycleId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  status    String   @default("draft") // draft, submitted, shortlisted, rejected, selected
+  createdAt DateTime @default(now())
+
+  applicationDomains ApplicationDomain[]
+  answers            Answer[]
+  submissions        Submission[]
+  interview          Interview?
+
+  @@unique([cycleId, userId]) // one application per user per cycle
+}
+
+// Join table enforcing "up to 2 domains per application" (max-2 checked at write time).
+model ApplicationDomain {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  domainId      String
+  domain        Domain      @relation(fields: [domainId], references: [id])
+
+  @@unique([applicationId, domainId])
+}
+
+model Answer {
+  id             String       @id @default(uuid())
+  applicationId  String
+  application    Application  @relation(fields: [applicationId], references: [id])
+  taskQuestionId String
+  taskQuestion   TaskQuestion @relation(fields: [taskQuestionId], references: [id])
+  answerText     String?
+  updatedAt      DateTime     @updatedAt
+
+  // Lets "edit until the deadline" be a plain upsert instead of separate insert/update logic.
+  @@unique([applicationId, taskQuestionId])
+}
+
+model Submission {
+  id            String    @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id])
+  domainId      String
+  domain        Domain    @relation(fields: [domainId], references: [id])
+  artifactType  String? // mirrors DomainTaskConfig.artifactType at time of submission
+  artifactUrl   String? // link, or uploaded-file URL
+  status        String    @default("in_progress") // in_progress, submitted, reviewed
+  score         Int?
+  reviewerNotes String?
+  submittedAt   DateTime?
+
+  @@unique([applicationId, domainId])
+}
+
+model InterviewSlot {
+  id          String   @id @default(uuid())
+  cycleId     String
+  cycle       Cycle    @relation(fields: [cycleId], references: [id])
+  createdById String
+  createdBy   User     @relation("SlotCreatedBy", fields: [createdById], references: [id])
+  slotDate    DateTime @db.Date
+  startTime   DateTime @db.Time
+  endTime     DateTime @db.Time
+  meetLink    String
+  capacity    Int // how many applicants may book this slot
+
+  interviews Interview[]
+}
+
+model Interview {
+  id              String         @id @default(uuid())
+  applicationId   String         @unique
+  application     Application    @relation(fields: [applicationId], references: [id])
+  interviewSlotId String? // null until the applicant books a slot themselves
+  interviewSlot   InterviewSlot? @relation(fields: [interviewSlotId], references: [id])
+  status          String         @default("locked") // locked, scheduled, completed
+  decision        String? // selected, rejected
+  feedback        String?
+}
