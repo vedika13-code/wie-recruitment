@@ -12,7 +12,7 @@ datasource db {
 
 model Cycle {
   id                  String    @id @default(uuid())
-  name                String // e.g. "2026"
+  name                String    @unique // e.g. "2026"
   status              String    @default("draft") // draft, open, closed
   applicationDeadline DateTime?
   taskDeadline        DateTime?
@@ -45,9 +45,8 @@ model User {
   addedAdmins    User[]    @relation("AdminAddedBy")
   createdAt      DateTime  @default(now())
 
-  applications      Application[]
-  domainAssignments DomainAssignment[]
-  createdSlots      InterviewSlot[]    @relation("SlotCreatedBy")
+  applications  Application[]
+  createdSlots  InterviewSlot[] @relation("SlotCreatedBy")
 }
 
 model Domain {
@@ -62,16 +61,16 @@ model Domain {
   domainTaskConfigs  DomainTaskConfig[]
 }
 
-// Domain head contact info shown on the Domain Info page — deliberately NOT the same
-// thing as an admin login (see ARCHITECTURE.md §3 notes).
+// Domain head contact info shown on the Domain Info page — deliberately NOT tied to a
+// User/login. Domain heads aren't necessarily registered accounts with known emails,
+// they're just a name + phone number to display (see ARCHITECTURE.md §3 notes).
 model DomainAssignment {
   id       String  @id @default(uuid())
   cycleId  String
   cycle    Cycle   @relation(fields: [cycleId], references: [id])
   domainId String
   domain   Domain  @relation(fields: [domainId], references: [id])
-  userId   String
-  user     User    @relation(fields: [userId], references: [id])
+  headName String
   phone    String?
 
   @@unique([cycleId, domainId])

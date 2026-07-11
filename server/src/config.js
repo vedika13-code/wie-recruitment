@@ -15,4 +15,8 @@ module.exports = {
   sessionSecret: process.env.SESSION_SECRET,
   sessionCookieName: "wie_session",
   adminAllowlist: parseAllowlist(process.env.ADMIN_ALLOWLIST),
+  // Double-gated on purpose: NODE_ENV must not be 'production' AND the flag must be
+  // explicitly true. Either one being unset/false is enough to keep this off.
+  enableDevLogin:
+    process.env.NODE_ENV !== "production" && process.env.ENABLE_DEV_LOGIN === "true",
 };

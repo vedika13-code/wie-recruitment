@@ -67,6 +67,28 @@ Ref: [PRD §4.1](./PRD.md#41-auth), [ARCHITECTURE.md §2 & §2.1](./ARCHITECTURE
 - Reloading the page or opening the app in a different browser on the same account stays
   logged in via the session, not `localStorage`.
 
+**Verified so far:** Google Sign-In button renders and completes a real Google auth flow;
+a real (non-college) Google ID token reaches the backend, passes signature/audience
+verification, and is correctly rejected for failing the domain check; session cookie →
+`/api/me` → role resolution → protected routes → logout all confirmed working (via the
+dev-login bypass below, which exercises the identical downstream code path).
+
+**⚠️ Still needs testing:** an actual `@vitstudent.ac.in` account signing in through the
+real Google button end-to-end (session created, correct role assigned from the allowlist,
+protected pages render). Blocked so far on VIT account access from the machines used
+during development (a work-managed Google Workspace blocked it on one machine; Windows
+Docker setup friction stalled testing on another). Low risk — the only unverified code
+path is Google's token verification *succeeding* a domain check, which is well-tested
+library behavior, not custom logic — but close this out for real before considering
+recruitment-cycle-critical (i.e. before applicants actually rely on this to sign in).
+
+**Addendum — dev-login bypass:** added `POST /api/auth/dev-login` (skips Google, logs in
+as any email/role) plus a matching form on `Login.jsx`, specifically to unblock testing
+Stretches 3+ without needing Google access on every machine. Double-gated (`NODE_ENV` +
+explicit `ENABLE_DEV_LOGIN` flag) so it can't reach production even if one gate is
+forgotten — see [DECISIONS.md](./DECISIONS.md). Not part of the original stretch scope,
+but necessary scaffolding for continuing to build/test the rest of the roadmap.
+
 ---
 
 ## Stretch 3 — Cycle, Domain & Profile persistence
@@ -123,6 +145,13 @@ Ref: [PRD §4.2 table](./PRD.md#42-applicant-facing), [ARCHITECTURE.md ER notes]
 ## Stretch 5 — Dashboard + deadline enforcement
 
 Ref: [PRD §3](./PRD.md#3-recruitment-flow-v1), [PRD §4.2](./PRD.md#42-applicant-facing).
+
+**Note:** `Dashboard.jsx`'s `localStorage` reads were already swapped for direct
+`getProfile()`/`getDomains()`/`getSelectedDomains()` calls during Stretch 3 — leaving the
+old localStorage-based card-lock logic in place would have actually blocked navigation
+(clicking a "locked" card is a real no-op, not just a visual state) the moment
+`Profile.jsx` stopped writing to `localStorage`. This stretch should **consolidate** those
+three separate calls into the single `GET /api/dashboard` below, not treat it as new work.
 
 - `GET /api/dashboard` aggregates profile/domain/task/interview unlock state (replacing
   `Dashboard.jsx`'s direct `localStorage` reads).

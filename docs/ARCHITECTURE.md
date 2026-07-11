@@ -178,7 +178,6 @@ erDiagram
     CYCLE ||--o{ TASK_QUESTION : "scopes"
     CYCLE ||--o{ INTERVIEW_SLOT : "scopes"
     USER ||--o{ APPLICATION : "submits"
-    USER ||--o{ DOMAIN_ASSIGNMENT : "is head for (contact info only)"
     USER ||--o{ USER : "added_by (super admin)"
     USER ||--o{ INTERVIEW_SLOT : "created_by (admin)"
     APPLICATION ||--o{ APPLICATION_DOMAIN : "chose"
@@ -229,7 +228,7 @@ erDiagram
         uuid id PK
         uuid cycle_id FK
         uuid domain_id FK
-        uuid user_id FK "the domain head for this cycle (contact display, not a login)"
+        string head_name "plain contact info, not a User FK - see notes below"
         string phone
     }
 
@@ -323,10 +322,14 @@ Notes:
   hold a code repo link, an uploaded code/design file, or a blog post URL — not just a PDF.
   Its own unique constraint on `(application_id, domain_id)` supports the same
   edit-until-deadline upsert pattern as `ANSWER`.
-- `DOMAIN_ASSIGNMENT` (domain head contact info shown on the Domain Info page) is
-  intentionally kept separate from the `USER.role = admin` concept — a domain head listed
-  there is not necessarily someone with a login/admin access; they're two independent
-  ideas that happen to both be "who's associated with a domain."
+- `DOMAIN_ASSIGNMENT` (domain head contact info shown on the Domain Info page) stores
+  `head_name` as a plain string rather than a `User` FK — corrected during Stretch 3
+  implementation once it became clear domain heads (per the names/phones already in
+  `DomainInfo.jsx`) aren't registered accounts with known emails, so a required FK to
+  `USER` couldn't be satisfied without fabricating fake accounts. This is intentionally
+  separate from the `USER.role = admin` concept either way — a domain head is contact
+  info to display, not necessarily someone with login/admin access. See
+  [DECISIONS.md](./DECISIONS.md) for the full reasoning.
 - `USER.added_by` gives an audit trail of who granted admin access to whom, which matters
   once a Super Admin can add/remove admins entirely in-app. Removing an admin only flips
   `role`; the row (and everything that FK's to it) is never deleted — see §2.1.

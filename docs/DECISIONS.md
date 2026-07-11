@@ -369,6 +369,70 @@ connection error later knows to check `db.js`'s adapter wiring first.
 
 **Status:** Decided.
 
+**Addendum (2026-07-11):** `prisma migrate dev` refuses to run at all in a non-interactive
+shell whenever it has *any* warning to show (e.g. adding a unique constraint), even with
+`--create-only`. Workaround: hand-write the migration's `migration.sql` in a new
+`prisma/migrations/<timestamp>_<name>/` folder, then run `prisma migrate deploy` (which
+doesn't require a TTY) to apply it, followed by `prisma generate`. Fine for additive/safe
+changes; double-check the SQL by hand for anything that could actually be destructive.
+
+---
+
+## 2026-07-11 — Dev-only login bypass, double-gated against ever running in production
+
+**Decision:** Added `POST /api/auth/dev-login`, which skips Google verification entirely
+and logs in as any email/role you give it. It only responds when **both**
+`NODE_ENV !== "production"` **and** `ENABLE_DEV_LOGIN=true` are set — either one being
+false/unset is enough to make it 404. The frontend's matching dev-login form on
+`Login.jsx` only renders when `REACT_APP_ENABLE_DEV_LOGIN=true`, which lives in a
+gitignored `.env.local` (never the committed `.env`), since CRA bakes `REACT_APP_*` vars
+into the build at build time, not checked at runtime like the backend's `NODE_ENV` check.
+
+**Why:** Testing this app requires a real `@vitstudent.ac.in` Google account, and the
+person actually driving development doesn't reliably have one available on every machine
+they work from (blocked by an org's Google Workspace policy on one machine, Windows setup
+friction on another). Without this, every round of frontend/backend changes behind
+`ProtectedRoute` would be untestable locally. This is a standard pattern for exactly this
+situation — the risk is an auth bypass reaching a real deployment, which the double gate
+(env-var AND NODE_ENV, checked server-side) is specifically designed to prevent even if
+one of the two safeguards is forgotten.
+
+**Alternatives considered:**
+- *Just use the real Google flow, always* — the actual blocker this round was an account
+  access limitation, not a preference; blocked on env restrictions we don't fully control.
+- *Gate on `NODE_ENV` alone* — rejected; relying on a single flag means one misconfigured
+  deploy (`NODE_ENV` unset or wrong) silently exposes it. Two independent flags are safer
+  than one.
+- *Gate on `ENABLE_DEV_LOGIN` alone* — same reasoning, rejected for the same single-point-
+  of-failure risk.
+
+**Status:** Decided. Must never be enabled (`ENABLE_DEV_LOGIN=true` / `NODE_ENV` anything
+but `production`) on whatever the college ends up hosting this on.
+
+---
+
+## 2026-07-11 — DomainAssignment stores head name as a string, not a User FK
+
+**Decision:** `DomainAssignment.headName` is a plain string field. The original schema
+draft had it as a required FK to `User` (see the first ARCHITECTURE.md draft) — changed
+during Stretch 3 implementation, before any real data was lost to it (caught at seed-data
+time, not after).
+
+**Why:** The domain head names/phone numbers already sitting in `DomainInfo.jsx`
+(e.g. "Vedika Goyal", "9740179001") aren't tied to any known email address, so they aren't
+registered `User` accounts in this system and likely won't be for most cycles — domain
+heads are contact info to display, not necessarily people who ever log in. A required FK
+to `User` would have forced fabricating placeholder accounts with made-up emails just to
+satisfy the constraint, which is worse than the field it was trying to model.
+
+**Alternatives considered:**
+- *Keep the `User` FK, make it optional* — still doesn't solve displaying a name for a
+  head who has no account at all, which is the common case with the current seed data.
+- *Create real `User` rows for each head anyway* — rejected; inventing email addresses for
+  real people is actively wrong, not just inconvenient.
+
+**Status:** Decided.
+
 ---
 
 <!--

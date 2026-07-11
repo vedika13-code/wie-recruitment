@@ -27,3 +27,34 @@ export function loginWithGoogle(idToken) {
 export function logout() {
   return request("/api/auth/logout", { method: "POST" });
 }
+
+// DEV ONLY — backend 404s this unless ENABLE_DEV_LOGIN is set, see docs/DECISIONS.md.
+export function devLogin(email, role) {
+  return request("/api/auth/dev-login", {
+    method: "POST",
+    body: JSON.stringify({ email, role }),
+  });
+}
+
+export function getProfile() {
+  return request("/api/profile");
+}
+
+export function updateProfile(profile) {
+  return request("/api/profile", { method: "PUT", body: JSON.stringify(profile) });
+}
+
+export function getDomains() {
+  return request("/api/domains");
+}
+
+export function getSelectedDomains() {
+  return request("/api/applications/domains");
+}
+
+export function setSelectedDomains(domainIds) {
+  return request("/api/applications/domains", {
+    method: "POST",
+    body: JSON.stringify({ domainIds }),
+  });
+}

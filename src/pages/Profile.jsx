@@ -1,148 +1,108 @@
-import { useState, useEffect } from "react"; // Hooks: state + lifecycle
-import { useNavigate } from "react-router-dom"; // Hook for routing/navigation
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { getProfile, updateProfile } from "../api";
 
-function Profile() { // Functional Component (Profile page)
-  const navigate = useNavigate(); // Hook: used to navigate between routes
+function Profile() {
+  const navigate = useNavigate();
 
-  // State: stores entire form data as an object
+  const [email, setEmail] = useState("");
   const [form, setForm] = useState({
     name: "",
-    email: "",
     phone: "",
-    reg: "",
+    regNo: "",
     branch: "",
     specialization: "",
     age: "",
-    type: "",
-    github: ""
+    residenceType: "",
+    githubUrl: "",
+    linkedinUrl: "",
+    portfolioUrl: "",
   });
 
-  // useEffect: runs once when component loads (autofill from localStorage)
   useEffect(() => {
-    const saved = JSON.parse(localStorage.getItem("profile")); // LocalStorage read
-    if (saved) setForm(saved); // Update state → autofill form
+    getProfile().then((profile) => {
+      setEmail(profile.email);
+      setForm((prev) => ({
+        ...prev,
+        ...Object.fromEntries(
+          Object.keys(prev).map((key) => [key, profile[key] ?? ""])
+        ),
+      }));
+    });
   }, []);
 
-  // Event handling: updates state when user types
   const handleChange = (e) => {
-    setForm({ 
-      ...form, // Spread operator (keeps existing values)
-      [e.target.name]: e.target.value // Updates only changed field
-    });
+    setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Event handling: form submission
-  const handleSubmit = (e) => {
-    e.preventDefault(); // Prevent page reload (important in forms)
-
-    // Validation: check VIT email
-    if (!form.email.endsWith("@vitstudent.ac.in")) {
-      alert("Enter valid VIT email ID"); // Browser API
-      return;
-    }
-
-    // LocalStorage: save form data
-    localStorage.setItem("profile", JSON.stringify(form));
-
-    alert("Profile Saved"); // Feedback
-
-    navigate("/dashboard"); // Routing after submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await updateProfile(form);
+    alert("Profile Saved");
+    navigate("/dashboard");
   };
 
-  // Event handling: clear all stored data
-  const handleClearAll = () => {
-    const confirmClear = window.confirm(
-      "This will delete your profile and selected domains. Continue?"
-    );
-
-    if (confirmClear) {
-      // Remove stored data (localStorage)
-      localStorage.removeItem("profile");
-      localStorage.removeItem("domains");
-      localStorage.removeItem("user");
-
-      alert("Profile & data cleared");
-
-      navigate("/login"); // Redirect to login
-      window.location.reload(); // Force reload
-    }
-  };
-
-  // JSX: UI structure
   return (
-    <div className="profile-page"> {/* Styling */}
-
-      {/* Navigation using click */}
+    <div className="profile-page">
       <div className="back-btn" onClick={() => navigate("/dashboard")}>
         ← Dashboard
       </div>
 
-      {/* Static JSX */}
       <h1 className="profile-title">PROFILE</h1>
 
-      {/* Form handling */}
-      <form onSubmit={handleSubmit}> {/* Form event */}
-
+      <form onSubmit={handleSubmit}>
         <div className="profile-card">
           <h2>DETAILS</h2>
 
           <div className="form-grid">
-
-            {/* Controlled inputs (state-driven inputs) */}
+            <input value={email} placeholder="VIT Email" disabled />
             <input name="name" value={form.name} placeholder="Full Name" onChange={handleChange} />
-            <input name="email" value={form.email} placeholder="VIT Email" onChange={handleChange} />
             <input name="phone" value={form.phone} placeholder="Phone" onChange={handleChange} />
-            <input name="reg" value={form.reg} placeholder="Registration No" onChange={handleChange} />
+            <input name="regNo" value={form.regNo} placeholder="Registration No" onChange={handleChange} />
             <input name="branch" value={form.branch} placeholder="Branch" onChange={handleChange} />
-            <input name="specialization" value={form.specialization} placeholder="Specialization" onChange={handleChange} />
-            <input name="age" value={form.age} placeholder="Age" onChange={handleChange} />
+            <input
+              name="specialization"
+              value={form.specialization}
+              placeholder="Specialization"
+              onChange={handleChange}
+            />
+            <input name="age" type="number" value={form.age} placeholder="Age" onChange={handleChange} />
 
-            {/* Select input (also controlled) */}
-            <select name="type" value={form.type} onChange={handleChange}>
+            <select name="residenceType" value={form.residenceType} onChange={handleChange}>
               <option value="">Select</option>
               <option>Hosteller</option>
               <option>Day Scholar</option>
             </select>
-
           </div>
         </div>
 
         <div className="profile-card">
-          <h2>PROFILES</h2>
+          <h2>PROFILES (optional)</h2>
 
-          {/* Controlled input */}
           <input
-            name="github"
-            value={form.github}
+            name="githubUrl"
+            value={form.githubUrl}
             placeholder="GitHub URL"
+            onChange={handleChange}
+          />
+          <input
+            name="linkedinUrl"
+            value={form.linkedinUrl}
+            placeholder="LinkedIn URL"
+            onChange={handleChange}
+          />
+          <input
+            name="portfolioUrl"
+            value={form.portfolioUrl}
+            placeholder="Portfolio URL"
             onChange={handleChange}
           />
         </div>
 
-        {/* Submit button */}
         <button className="save-btn">Save Profile</button>
-
-        {/* Clear button with inline styling */}
-        <button
-          type="button"
-          onClick={handleClearAll} // Event handling
-          style={{ // Inline styling
-            marginTop: "15px",
-            padding: "12px",
-            backgroundColor: "red",
-            color: "white",
-            border: "none",
-            borderRadius: "5px",
-            cursor: "pointer",
-            width: "100%"
-          }}
-        >
-          Clear Profile & Domains
-        </button>
-
       </form>
     </div>
   );
 }
 
-export default Profile; // Export component
+export default Profile;
