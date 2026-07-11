@@ -180,6 +180,15 @@ browser/device. Countdown shows correct remaining time. After the deadline: the 
 disables editing, **and** calling the write endpoints directly (e.g. via curl/Postman)
 after the deadline is also rejected by the server — verify both, not just the UI state.
 
+**Verified:** countdown confirmed live on Home/Apply/Dashboard with the correct remaining
+time. Both deadlines (`applicationDeadline`, `taskDeadline`) were each temporarily set to
+a past date directly in the DB to confirm the full lockout end-to-end: Profile/Domain
+forms disabled with the expected message and a direct `POST /api/tasks/:domain/answers`
+call returned `423` server-side — not just the UI hiding the option. Deadlines restored
+to their placeholder future values afterward. 2026 cycle currently seeded with
+`applicationDeadline` = seed time + 30 days, `taskDeadline` = +45 days — placeholders
+until the chapter has real dates (see seed.js comment).
+
 ---
 
 ## Stretch 6 — Admin core: review applications, submissions & task config

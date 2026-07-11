@@ -8,6 +8,8 @@ const profileRouter = require("./routes/profile");
 const domainsRouter = require("./routes/domains");
 const applicationsRouter = require("./routes/applications");
 const tasksRouter = require("./routes/tasks");
+const cyclesRouter = require("./routes/cycles");
+const dashboardRouter = require("./routes/dashboard");
 const { uploadsDir } = require("./uploads");
 
 const app = express();
@@ -28,6 +30,8 @@ app.use("/api/profile", profileRouter);
 app.use("/api/domains", domainsRouter);
 app.use("/api/applications", applicationsRouter);
 app.use("/api/tasks", tasksRouter);
+app.use("/api/cycles", cyclesRouter);
+app.use("/api/dashboard", dashboardRouter);
 app.use("/uploads", express.static(uploadsDir));
 
 // eslint-disable-next-line no-unused-vars

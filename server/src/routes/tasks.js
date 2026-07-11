@@ -1,7 +1,11 @@
 const { Router } = require("express");
 const prisma = require("../db");
 const { requireAuth } = require("../middleware/auth");
-const { getActiveCycle, getOrCreateApplication } = require("../services/cycle");
+const {
+  getActiveCycle,
+  getOrCreateApplication,
+  assertActiveCycleDeadline,
+} = require("../services/cycle");
 const { upload } = require("../uploads");
 
 const router = Router();
@@ -81,7 +85,7 @@ router.post("/:domain/answers", requireAuth, async (req, res) => {
     return res.status(400).json({ error: "answers must be an array" });
   }
 
-  const cycle = await getActiveCycle();
+  const cycle = await assertActiveCycleDeadline("taskDeadline");
   const validQuestions = await prisma.taskQuestion.findMany({
     where: { cycleId: cycle.id, domainId: domain.id },
     select: { id: true },
@@ -121,7 +125,7 @@ router.post("/:domain/artifact", requireAuth, upload.single("file"), async (req,
   const domain = await findDomain(req.params.domain);
   if (!domain) return res.status(404).json({ error: "Unknown domain" });
 
-  const cycle = await getActiveCycle();
+  const cycle = await assertActiveCycleDeadline("taskDeadline");
   const config = await prisma.domainTaskConfig.findUnique({
     where: { cycleId_domainId: { cycleId: cycle.id, domainId: domain.id } },
   });
@@ -156,7 +160,7 @@ router.post("/:domain/submit", requireAuth, async (req, res) => {
   const domain = await findDomain(req.params.domain);
   if (!domain) return res.status(404).json({ error: "Unknown domain" });
 
-  const cycle = await getActiveCycle();
+  const cycle = await assertActiveCycleDeadline("taskDeadline");
   const config = await prisma.domainTaskConfig.findUnique({
     where: { cycleId_domainId: { cycleId: cycle.id, domainId: domain.id } },
   });

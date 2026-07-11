@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProfile, updateProfile } from "../api";
+import { getProfile, updateProfile, getActiveCycle } from "../api";
+import { isPast } from "../utils";
 
 function Profile() {
   const navigate = useNavigate();
@@ -18,6 +19,8 @@ function Profile() {
     linkedinUrl: "",
     portfolioUrl: "",
   });
+  const [applicationClosed, setApplicationClosed] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     getProfile().then((profile) => {
@@ -29,6 +32,7 @@ function Profile() {
         ),
       }));
     });
+    getActiveCycle().then((cycle) => setApplicationClosed(isPast(cycle.applicationDeadline)));
   }, []);
 
   const handleChange = (e) => {
@@ -37,9 +41,14 @@ function Profile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await updateProfile(form);
-    alert("Profile Saved");
-    navigate("/dashboard");
+    setError("");
+    try {
+      await updateProfile(form);
+      alert("Profile Saved");
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   return (
@@ -99,7 +108,12 @@ function Profile() {
           />
         </div>
 
-        <button className="save-btn">Save Profile</button>
+        {applicationClosed && (
+          <p style={{ color: "red" }}>Applications are closed — profile editing is locked.</p>
+        )}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+
+        <button className="save-btn" disabled={applicationClosed}>Save Profile</button>
       </form>
     </div>
   );

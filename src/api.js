@@ -96,3 +96,11 @@ export function submitTask(domainName) {
 export function getTaskProgress() {
   return request("/api/tasks/progress");
 }
+
+export function getActiveCycle() {
+  return request("/api/cycles/active");
+}
+
+export function getDashboard() {
+  return request("/api/dashboard");
+}

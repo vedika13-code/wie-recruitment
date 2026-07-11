@@ -9,7 +9,9 @@ import {
   getDomains,
   getSelectedDomains,
   getTaskProgress,
+  getActiveCycle,
 } from "../api";
+import { isPast } from "../utils";
 
 const LINK_ARTIFACT_TYPES = ["code_link", "blog_link"];
 const FILE_ARTIFACT_TYPES = ["code_file", "design_file"];
@@ -26,6 +28,7 @@ function TaskQuestions() {
   const [artifactFile, setArtifactFile] = useState(null);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [taskClosed, setTaskClosed] = useState(false);
 
   useEffect(() => {
     // Router reuses this component instance across /tasks/:domain param changes, so
@@ -34,6 +37,8 @@ function TaskQuestions() {
     setSubmitting(false);
     setArtifactUrlInput("");
     setArtifactFile(null);
+
+    getActiveCycle().then((cycle) => setTaskClosed(isPast(cycle.taskDeadline)));
 
     getTask(domain).then((data) => {
       setQuestions(data.questions);
@@ -155,9 +160,12 @@ function TaskQuestions() {
         </div>
       )}
 
+      {taskClosed && (
+        <p style={{ color: "red" }}>The task deadline has passed — submissions are locked.</p>
+      )}
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <button onClick={handleSubmit} disabled={submitting}>
+      <button onClick={handleSubmit} disabled={submitting || taskClosed}>
         {submitting ? "Submitting..." : "Submit"}
       </button>
     </div>

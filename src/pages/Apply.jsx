@@ -1,11 +1,18 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getActiveCycle } from "../api";
+import Countdown from "../components/Countdown";
 
 function Apply() {//A functional component representing your Apply page,Shows recruitment info,Displays domains + instructions,Has a button to start application
   const navigate = useNavigate();//hooks Allows navigation using code
 
-  
+
   const [clickCount, setClickCount] = useState(0);
+  const [cycle, setCycle] = useState(null);
+
+  useEffect(() => {
+    getActiveCycle().then(setCycle);
+  }, []);
 
   return (
     <div className="apply-page">
@@ -17,6 +24,8 @@ function Apply() {//A functional component representing your Apply page,Shows re
         IEEE Women in Engineering provides a platform to learn,
         collaborate, and grow.
       </p>
+
+      {cycle && <Countdown deadline={cycle.applicationDeadline} label="Applications close in" />}
 
       {/* DOMAINS */}
       <div className="apply-section">

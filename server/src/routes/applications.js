@@ -1,7 +1,11 @@
 const { Router } = require("express");
 const prisma = require("../db");
 const { requireAuth } = require("../middleware/auth");
-const { getActiveCycle, getOrCreateApplication } = require("../services/cycle");
+const {
+  getActiveCycle,
+  getOrCreateApplication,
+  assertActiveCycleDeadline,
+} = require("../services/cycle");
 
 const router = Router();
 
@@ -34,7 +38,7 @@ router.post("/domains", requireAuth, async (req, res) => {
     return res.status(400).json({ error: "One or more domains are invalid" });
   }
 
-  const cycle = await getActiveCycle();
+  const cycle = await assertActiveCycleDeadline("applicationDeadline");
   const application = await getOrCreateApplication(req.user.id, cycle.id);
 
   await prisma.$transaction([

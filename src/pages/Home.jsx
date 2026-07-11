@@ -1,13 +1,18 @@
-import { useNavigate } from "react-router-dom"; // Hook for routing/navigation
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getActiveCycle } from "../api";
+import Countdown from "../components/Countdown";
 
-function Home() { // Functional Component (Home page)
-  const navigate = useNavigate(); // Hook: used to navigate between routes
+function Home() {
+  const navigate = useNavigate();
+  const [cycle, setCycle] = useState(null);
 
-  // JSX: UI structure
+  useEffect(() => {
+    getActiveCycle().then(setCycle);
+  }, []);
+
   return (
-    <div className="home-container"> {/* Styling using CSS class */}
-
-      {/* Static JSX content */}
+    <div className="home-container">
       <h1 className="home-title">
         IEEE Women in Engineering
       </h1>
@@ -16,10 +21,11 @@ function Home() { // Functional Component (Home page)
         Join a global network of innovators, leaders, and changemakers.
       </p>
 
-      {/* Button with event handling */}
-      <button 
-        className="apply-btn" // Styling
-        onClick={() => navigate("/profile")} // Event + Routing (programmatic navigation)
+      {cycle && <Countdown deadline={cycle.applicationDeadline} label="Applications close in" />}
+
+      <button
+        className="apply-btn"
+        onClick={() => navigate("/profile")}
       >
         Apply Now
       </button>
@@ -28,4 +34,4 @@ function Home() { // Functional Component (Home page)
   );
 }
 
-export default Home; // Export component for use in routing
+export default Home;

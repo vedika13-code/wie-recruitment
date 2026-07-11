@@ -111,10 +111,16 @@ We coordinate, organize, and handle logistics from start to finish.`,
 ];
 
 async function main() {
+  // Placeholder deadlines — the chapter hasn't finalized real dates yet (v1 has no admin
+  // UI for cycle management, per PRD; adjust directly in the DB until then).
+  const now = new Date();
+  const applicationDeadline = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+  const taskDeadline = new Date(now.getTime() + 45 * 24 * 60 * 60 * 1000);
+
   const cycle = await prisma.cycle.upsert({
     where: { name: "2026" },
     update: {},
-    create: { name: "2026", status: "open" },
+    create: { name: "2026", status: "open", applicationDeadline, taskDeadline },
   });
 
   for (const d of DOMAINS) {

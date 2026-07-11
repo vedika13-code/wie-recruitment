@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
-import { getDomains, getSelectedDomains, setSelectedDomains } from "../api";
+import { getDomains, getSelectedDomains, setSelectedDomains, getActiveCycle } from "../api";
+import { isPast } from "../utils";
 
 // Local images, keyed by domain name (still static assets, not server-provided)
 import tech from "../assets/technical.png";
@@ -28,15 +29,18 @@ function Domain({ title }) {
   const [domains, setDomains] = useState([]);
   const [selected, setSelected] = useState([]);
   const [message, setMessage] = useState("");
+  const [applicationClosed, setApplicationClosed] = useState(false);
 
   useEffect(() => {
     Promise.all([getDomains(), getSelectedDomains()]).then(([domainList, selection]) => {
       setDomains(domainList);
       setSelected(selection.domainIds);
     });
+    getActiveCycle().then((cycle) => setApplicationClosed(isPast(cycle.applicationDeadline)));
   }, []);
 
   const toggle = (id) => {
+    if (applicationClosed) return;
     setMessage("");
     setSelected((prev) => {
       if (prev.includes(id)) return prev.filter((d) => d !== id);
@@ -53,8 +57,12 @@ function Domain({ title }) {
       setMessage("Please select at least one domain.");
       return;
     }
-    await setSelectedDomains(selected);
-    navigate("/dashboard");
+    try {
+      await setSelectedDomains(selected);
+      navigate("/dashboard");
+    } catch (err) {
+      setMessage(err.message);
+    }
   };
 
   return (
@@ -74,9 +82,12 @@ function Domain({ title }) {
         ))}
       </div>
 
+      {applicationClosed && (
+        <p style={{ color: "red" }}>Applications are closed — domain selection is locked.</p>
+      )}
       {message && <p style={{ color: "red" }}>{message}</p>}
 
-      <button className="confirm-btn" onClick={handleSubmit}>
+      <button className="confirm-btn" onClick={handleSubmit} disabled={applicationClosed}>
         Confirm Selection
       </button>
     </div>

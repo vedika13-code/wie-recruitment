@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const prisma = require("../db");
 const { requireAuth } = require("../middleware/auth");
+const { assertActiveCycleDeadline } = require("../services/cycle");
 
 const router = Router();
 
@@ -35,6 +36,8 @@ router.get("/", requireAuth, (req, res) => {
 });
 
 router.put("/", requireAuth, async (req, res) => {
+  await assertActiveCycleDeadline("applicationDeadline");
+
   const data = {};
   for (const key of EDITABLE_FIELDS) {
     if (req.body[key] !== undefined) data[key] = req.body[key];
