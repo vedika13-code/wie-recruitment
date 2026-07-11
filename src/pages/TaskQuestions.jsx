@@ -1,147 +1,167 @@
-import { useParams, useNavigate } from "react-router-dom"; // Hooks: routing (URL params + navigation)
-import { useState } from "react"; // Hook: state management
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import {
+  getTask,
+  saveTaskAnswers,
+  submitTaskArtifactLink,
+  submitTaskArtifactFile,
+  submitTask,
+  getDomains,
+  getSelectedDomains,
+  getTaskProgress,
+} from "../api";
 
-function TaskQuestions() { // Functional Component (Task Questions page)
+const LINK_ARTIFACT_TYPES = ["code_link", "blog_link"];
+const FILE_ARTIFACT_TYPES = ["code_file", "design_file"];
 
-  // Routing: get dynamic value from URL (e.g., /tasks/Technical)
+function TaskQuestions() {
   const { domain } = useParams();
-
-  // Routing: navigation between pages
   const navigate = useNavigate();
 
-  // State: stores uploaded file
-  const [file, setFile] = useState(null);
+  const [questions, setQuestions] = useState(null);
+  const [artifactConfig, setArtifactConfig] = useState({ type: "none", label: null });
+  const [existingArtifactUrl, setExistingArtifactUrl] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [artifactUrlInput, setArtifactUrlInput] = useState("");
+  const [artifactFile, setArtifactFile] = useState(null);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  // Static data (questions based on domain)
-  const questionsMap = {
-    Technical: [
-      "How do you see technology creating inclusive communities?",
-      "Describe your strongest skill and what you're improving.",
-      "Tell us about a technical challenge you faced.",
-      "How would you lead an inclusive technical team?"
-    ],
-    Projects: [
-      "Describe a project idea you would build.",
-      "How do you approach problem-solving?",
-      "Tell us about teamwork experience.",
-      "How will your project create impact?"
-    ],
-    Publicity: [
-      "How would you increase engagement?",
-      "What content performs best?",
-      "Campaign idea for WIE?",
-      "How do you track trends?"
-    ],
-    Editorial: [
-      "Write about IEEE WIE.",
-      "How to make content engaging?",
-      "Your writing style?",
-      "How to document events?"
-    ],
-    Design: [
-      "Tools you use?",
-      "Visual storytelling approach?",
-      "Design you're proud of?",
-      "Brand consistency?"
-    ],
-    Management: [
-      "Plan an event?",
-      "Leadership experience?",
-      "Handling pressure?",
-      "Team coordination?"
-    ]
+  useEffect(() => {
+    // Router reuses this component instance across /tasks/:domain param changes, so
+    // state from the previous domain must be reset explicitly here, not just re-fetched.
+    setError("");
+    setSubmitting(false);
+    setArtifactUrlInput("");
+    setArtifactFile(null);
+
+    getTask(domain).then((data) => {
+      setQuestions(data.questions);
+      setArtifactConfig(data.artifactConfig);
+      setExistingArtifactUrl(data.submission?.artifactUrl || null);
+      setAnswers(
+        Object.fromEntries(data.questions.map((q) => [q.id, q.answerText]))
+      );
+    });
+  }, [domain]);
+
+  const handleAnswerChange = (questionId, text) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: text }));
   };
 
-  // Dynamic data selection based on URL param
-  const questions = questionsMap[domain] || [];
+  const handleSubmit = async () => {
+    setError("");
+    setSubmitting(true);
+    try {
+      await saveTaskAnswers(
+        domain,
+        Object.entries(answers).map(([questionId, text]) => ({ questionId, text }))
+      );
 
-  // Event handling: form submission
-  const handleSubmit = () => {
+      if (LINK_ARTIFACT_TYPES.includes(artifactConfig.type)) {
+        if (artifactUrlInput) {
+          await submitTaskArtifactLink(domain, artifactUrlInput);
+        } else if (!existingArtifactUrl) {
+          setError(`Please provide: ${artifactConfig.label}`);
+          setSubmitting(false);
+          return;
+        }
+      } else if (FILE_ARTIFACT_TYPES.includes(artifactConfig.type)) {
+        if (artifactFile) {
+          await submitTaskArtifactFile(domain, artifactFile);
+        } else if (!existingArtifactUrl) {
+          setError(`Please provide: ${artifactConfig.label}`);
+          setSubmitting(false);
+          return;
+        }
+      }
 
-    // Validation: check if file uploaded
-    if (!file) {
-      alert("Please upload your PDF"); // Browser API
-      return;
-    }
+      await submitTask(domain);
 
-    // LocalStorage: get selected domains
-    const selectedDomains =
-      JSON.parse(localStorage.getItem("domains")) || [];
+      // Advance to the next selected-but-not-yet-submitted domain, or Interview if done.
+      const [allDomains, selection, progress] = await Promise.all([
+        getDomains(),
+        getSelectedDomains(),
+        getTaskProgress(),
+      ]);
+      const selectedNames = allDomains
+        .filter((d) => selection.domainIds.includes(d.id))
+        .map((d) => d.name);
+      const submittedNames = allDomains
+        .filter((d) => progress.submittedDomainIds.includes(d.id))
+        .map((d) => d.name);
+      const remaining = selectedNames.filter((name) => !submittedNames.includes(name));
 
-    // LocalStorage: get completed domains
-    let completedDomains =
-      JSON.parse(localStorage.getItem("completedDomains")) || [];
-
-    const currentDomain = domain.trim();
-
-    // Logic: add current domain if not already completed
-    if (!completedDomains.includes(currentDomain)) {
-      completedDomains.push(currentDomain);
-    }
-
-    // Save updated completed domains
-    localStorage.setItem(
-      "completedDomains",
-      JSON.stringify(completedDomains)
-    );
-
-    alert("PDF uploaded successfully ");
-
-    // Logic: find remaining domains
-    const remainingDomains = selectedDomains.filter(
-      (d) => !completedDomains.includes(d)
-    );
-
-    // Debugging (console logs)
-    console.log("Selected:", selectedDomains);
-    console.log("Completed:", completedDomains);
-    console.log("Remaining:", remainingDomains);
-
-    // Routing logic (conditional navigation)
-    if (remainingDomains.length > 0) {
-      navigate(`/tasks/${remainingDomains[0]}`); // Go to next domain task
-    } else {
-      localStorage.setItem("tasksDone", true); // Save completion flag
-      navigate("/interview"); // Go to interview page
+      navigate(remaining.length > 0 ? `/tasks/${remaining[0]}` : "/interview");
+    } catch (err) {
+      setError(err.message);
+      setSubmitting(false);
     }
   };
 
-  // JSX: UI structure
+  if (!questions) return <p>Loading...</p>;
+
   return (
-    <div className="questions-page"> {/* Styling */}
-
-      {/* Dynamic heading */}
+    <div className="questions-page">
       <h1>{domain} Domain Questions</h1>
 
-      {/* Dynamic rendering (mapping questions) */}
       <div className="questions-container">
-        {questions.map((q, i) => ( // Loop through questions
-          <p key={i} className="question"> {/* Key required */}
-            <b>{i + 1}.</b> {q}
-          </p>
+        {questions.map((q, i) => (
+          <div key={q.id} className="question">
+            <p><b>{i + 1}.</b> {q.questionText}</p>
+            <textarea
+              value={answers[q.id] || ""}
+              onChange={(e) => handleAnswerChange(q.id, e.target.value)}
+              rows={3}
+              style={{ width: "100%" }}
+            />
+          </div>
         ))}
       </div>
 
-      {/* Static JSX content */}
-      <div className="instruction-box">
-        📌 Upload all answers in a <b>single PDF</b>
-      </div>
+      {artifactConfig.type !== "none" && (
+        <div className="upload-box">
+          <div className="instruction-box">📌 Also provide: {artifactConfig.label}</div>
 
-      {/* File upload + event handling */}
-      <div className="upload-box">
-        <input
-          type="file"
-          accept="application/pdf"
-          onChange={(e) => setFile(e.target.files[0])} // State update
-        />
+          {LINK_ARTIFACT_TYPES.includes(artifactConfig.type) && (
+            <input
+              type="url"
+              placeholder={artifactConfig.label}
+              value={artifactUrlInput}
+              onChange={(e) => setArtifactUrlInput(e.target.value)}
+            />
+          )}
 
-        <button onClick={handleSubmit}> {/* Event handling */}
-          Submit PDF
-        </button>
-      </div>
+          {FILE_ARTIFACT_TYPES.includes(artifactConfig.type) && (
+            <>
+              <input
+                type="file"
+                onChange={(e) => setArtifactFile(e.target.files[0])}
+              />
+              {existingArtifactUrl && !artifactFile && (
+                <p>
+                  Current file:{" "}
+                  <a href={`${process.env.REACT_APP_API_BASE_URL}${existingArtifactUrl}`} target="_blank" rel="noreferrer">
+                    view
+                  </a>
+                </p>
+              )}
+            </>
+          )}
 
+          {existingArtifactUrl && LINK_ARTIFACT_TYPES.includes(artifactConfig.type) && !artifactUrlInput && (
+            <p>Currently saved: {existingArtifactUrl}</p>
+          )}
+        </div>
+      )}
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <button onClick={handleSubmit} disabled={submitting}>
+        {submitting ? "Submitting..." : "Submit"}
+      </button>
     </div>
   );
 }
 
-export default TaskQuestions; // Export component
+export default TaskQuestions;

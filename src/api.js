@@ -1,10 +1,13 @@
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
 
 async function request(path, options = {}) {
+  // FormData bodies (file uploads) must NOT get a manual Content-Type — the browser
+  // sets the multipart boundary itself when it sees a FormData body.
+  const isFormData = options.body instanceof FormData;
   const res = await fetch(`${API_BASE_URL}${path}`, {
     credentials: "include", // send/receive the session cookie
-    headers: { "Content-Type": "application/json" },
     ...options,
+    headers: isFormData ? options.headers : { "Content-Type": "application/json", ...options.headers },
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -57,4 +60,39 @@ export function setSelectedDomains(domainIds) {
     method: "POST",
     body: JSON.stringify({ domainIds }),
   });
+}
+
+export function getTask(domainName) {
+  return request(`/api/tasks/${encodeURIComponent(domainName)}`);
+}
+
+export function saveTaskAnswers(domainName, answers) {
+  return request(`/api/tasks/${encodeURIComponent(domainName)}/answers`, {
+    method: "POST",
+    body: JSON.stringify({ answers }),
+  });
+}
+
+export function submitTaskArtifactLink(domainName, url) {
+  return request(`/api/tasks/${encodeURIComponent(domainName)}/artifact`, {
+    method: "POST",
+    body: JSON.stringify({ url }),
+  });
+}
+
+export function submitTaskArtifactFile(domainName, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  return request(`/api/tasks/${encodeURIComponent(domainName)}/artifact`, {
+    method: "POST",
+    body: formData,
+  });
+}
+
+export function submitTask(domainName) {
+  return request(`/api/tasks/${encodeURIComponent(domainName)}/submit`, { method: "POST" });
+}
+
+export function getTaskProgress() {
+  return request("/api/tasks/progress");
 }

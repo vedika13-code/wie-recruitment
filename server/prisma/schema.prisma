@@ -99,6 +99,8 @@ model TaskQuestion {
   order        Int
 
   answers Answer[]
+
+  @@unique([cycleId, domainId, order])
 }
 
 model Application {

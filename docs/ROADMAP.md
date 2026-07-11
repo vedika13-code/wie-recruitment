@@ -140,6 +140,16 @@ Ref: [PRD §4.2 table](./PRD.md#42-applicant-facing), [ARCHITECTURE.md ER notes]
   next selected domain or to Interview, matching today's `TaskQuestions.jsx` navigation
   logic (remaining domains → next task; none left → Interview).
 
+**Verified:** full flow tested live — Technical (link artifact) → Projects (no artifact)
+→ Interview, including the artifact-required rejection, file upload + static retrieval,
+and answers/artifact surviving a direct revisit of `/tasks/Technical`. One bug found and
+fixed during testing: `TaskQuestions.jsx`'s `submitting`/artifact-input state wasn't reset
+on domain change — React Router reuses the same component instance across
+`/tasks/:domain` param changes (no unmount), so leftover state from the previous domain
+(the disabled "Submitting..." button, stale artifact input) carried over instead of
+resetting. Fixed by explicitly resetting that state inside the `useEffect` keyed on
+`domain`, rather than only at the point of the submit handler.
+
 ---
 
 ## Stretch 5 — Dashboard + deadline enforcement
