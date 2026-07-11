@@ -20,11 +20,14 @@ import Navbar from "./components/Navbar";
 // Importing CSS (styling)
 import "./styles/style.css";
 
+// Session lookup
+import { getMe } from "./api";
+
 
 // Protected Route (Component + Hooks + Props)
 const ProtectedRoute = ({ children }) => {
 
-  // State: stores logged-in user
+  // State: stores logged-in user (from the backend session, not localStorage)
   const [user, setUser] = useState(null);
 
   // State: loading indicator
@@ -32,9 +35,10 @@ const ProtectedRoute = ({ children }) => {
 
   // useEffect: runs once when component loads
   useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem("user")); // LocalStorage read
-    setUser(storedUser); // Update state
-    setLoading(false); // Stop loading
+    getMe()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
   // Conditional rendering (loading state)

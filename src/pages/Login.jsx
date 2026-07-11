@@ -1,54 +1,59 @@
-import { useState } from "react"; // Hook for managing state
-import { useNavigate } from "react-router-dom"; // Hook for navigation (routing)
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginWithGoogle } from "../api";
 
-function Login() { // Functional Component (represents Login page)
-
-  // State: stores the email entered by user
-  const [email, setEmail] = useState("");
-
-  // Hook: used to navigate between routes/pages
+function Login() {
   const navigate = useNavigate();
+  const buttonRef = useRef(null);
+  const [error, setError] = useState("");
 
+  useEffect(() => {
+    const handleCredentialResponse = async (response) => {
+      setError("");
+      try {
+        await loginWithGoogle(response.credential);
+        navigate("/");
+      } catch (err) {
+        setError(err.message);
+      }
+    };
 
-  // Event handling function (runs when Login button is clicked)
-  const handleLogin = () => {
+    // The GIS script tag is async/defer, so it may not be loaded yet on mount.
+    let cancelled = false;
+    const tryInit = () => {
+      if (cancelled) return;
+      if (!window.google?.accounts?.id) {
+        setTimeout(tryInit, 100);
+        return;
+      }
+      window.google.accounts.id.initialize({
+        client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+        callback: handleCredentialResponse,
+      });
+      window.google.accounts.id.renderButton(buttonRef.current, {
+        theme: "outline",
+        size: "large",
+      });
+    };
+    tryInit();
 
-    // Validation logic (checks if email is VIT email)
-    if (!email.endsWith("@vitstudent.ac.in")) {
-      alert("Please use your VIT email ID"); // Browser API (alert)
-      return;
-    }
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
-    // LocalStorage: saving user session (persistent data)
-    localStorage.setItem("user", JSON.stringify({ email }));
-
-    // Routing: navigate to home page after login
-    navigate("/");
-  };
-
-  // JSX: UI structure of the component
   return (
-    <div className="login-page"> {/* Styling using CSS class */}
-      <div className="login-card"> {/* Styling */}
-
+    <div className="login-page">
+      <div className="login-card">
         <h1>Login</h1>
+        <p>Sign in with your VIT Google account.</p>
 
-        {/* Input field (controlled component using state) */}
-        <input
-          type="email"
-          placeholder="Enter your VIT email"
-          value={email} // State value displayed in input
-          onChange={(e) => setEmail(e.target.value)} // Updates state on typing
-        />
+        <div ref={buttonRef} />
 
-        {/* Button with event handler */}
-        <button onClick={handleLogin}>
-          Login
-        </button>
-
+        {error && <p style={{ color: "red" }}>{error}</p>}
       </div>
     </div>
   );
 }
 
-export default Login; // Exporting component for use in routing
+export default Login;

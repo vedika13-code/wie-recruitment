@@ -1,13 +1,24 @@
 const express = require("express");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 const healthRouter = require("./routes/health");
+const authRouter = require("./routes/auth");
+const meRouter = require("./routes/me");
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_ORIGIN || "http://localhost:3000",
+    credentials: true, // required so the browser will send/accept the session cookie
+  })
+);
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/health", healthRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/me", meRouter);
 
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {

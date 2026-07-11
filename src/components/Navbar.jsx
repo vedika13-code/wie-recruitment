@@ -1,10 +1,17 @@
-import { Link, useLocation } from "react-router-dom";//ROUTING->CHANGES URL->loads component->no page reload
+import { Link, useLocation, useNavigate } from "react-router-dom";//ROUTING->CHANGES URL->loads component->no page reload
 import PropTypes from "prop-types";
+import { logout } from "../api";
 
 function Navbar({ title }) {{/*component representing navbar displays title top left and other nav links,prop(receives data from parent)*/}
   const location = useLocation();//hook->routing concept, gives corrent url info
+  const navigate = useNavigate();
 
   const isActive = (path) => location.pathname === path ? "active" : "";
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   return (
     <nav className="navbar">
@@ -15,6 +22,7 @@ function Navbar({ title }) {{/*component representing navbar displays title top 
         <Link className={isActive("/dashboard")} to="/dashboard">Dashboard</Link>
         <Link className={isActive("/apply")} to="/apply">Apply</Link>
         <Link className={isActive("/domains-info")} to="/domains-info">Domains</Link>
+        <button type="button" onClick={handleLogout}>Logout</button>
       </div>
     </nav>
   );
