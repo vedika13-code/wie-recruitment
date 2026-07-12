@@ -141,3 +141,25 @@ export function setDomainTaskConfig(domainName, { artifactType, artifactLabel })
     body: JSON.stringify({ artifactType, artifactLabel }),
   });
 }
+
+export function getInterviewStatus() {
+  return request("/api/interview");
+}
+
+export function bookInterviewSlot(slotId) {
+  return request("/api/interview/book", {
+    method: "POST",
+    body: JSON.stringify({ slotId }),
+  });
+}
+
+export function getAdminInterviewSlots() {
+  return request("/api/admin/interview-slots");
+}
+
+export function createInterviewSlot({ slotDate, startTime, endTime, meetLink, capacity }) {
+  return request("/api/admin/interview-slots", {
+    method: "POST",
+    body: JSON.stringify({ slotDate, startTime, endTime, meetLink, capacity }),
+  });
+}

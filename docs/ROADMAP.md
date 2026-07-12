@@ -254,6 +254,39 @@ Ref: [PRD §4.2 & §4.3](./PRD.md#42-applicant-facing), [ARCHITECTURE.md §2.2](
   atomicity requirement, not just clicking the button once yourself.
 - A non-shortlisted applicant still sees "locked", not the slot list.
 
+**Verified:** confirmed live end-to-end — locked before shortlisting, slot list with
+correct remaining capacity after, successful booking with persisted confirmation
+(date/time/meet link) surviving a reload, duplicate-booking rejected with 409, a second
+applicant hitting a full slot rejected with 409. The atomicity requirement was tested for
+real (not just clicked once): two concurrent `POST /api/interview/book` requests fired at
+the last open seat of a capacity-1 slot via backgrounded curl — exactly one succeeded
+(`200`), the other correctly rejected (`409`), and the final DB count confirmed exactly 1
+booking, not 2.
+
+A third gap (not a bug, a missed requirement): `GET /api/admin/interview-slots` only
+returned a `bookedCount`, not who specifically booked — but PRD §4.3 explicitly calls for
+"admins can see who has booked each slot." Fixed by including each booking's applicant
+name/email in the response and adding a "Booked by" column to the admin slot table.
+
+Two real bugs found and fixed during this stretch:
+1. **Timezone bug** in slot creation — `new Date("1970-01-01T10:00")` (no timezone
+   designator) parses as the *server's local time* per the ECMAScript spec, so a "10:00"
+   slot was silently stored as `04:30 UTC` on this IST-timezone dev machine. Fixed by
+   forcing UTC parsing explicitly (`...T10:00:00.000Z`) — otherwise the exact same input
+   would store a different value depending on which timezone the server happens to run
+   in, a classic "works on my machine" landmine for whenever this deploys elsewhere.
+   Frontend display formatting must also use `timeZone: "UTC"` explicitly for the same
+   reason (see `formatSlotDate`/`formatSlotTime` in `utils.js`).
+2. **`Dashboard.jsx`'s Interview card was hardcoded to `"locked"`** — written back in
+   Stretch 3/5 before Stretch 7's real unlock logic existed, and never revisited. Since a
+   `"locked"` card is a real navigation no-op (`Card.jsx` blocks the click), this actually
+   *prevented* reaching `/interview` at all once shortlisted, not just a stale badge.
+   Fixed by adding `applicationStatus` to `GET /api/dashboard`'s response and computing
+   the card's status from it, matching `interview.js`'s own unlock check. Worth
+   remembering: any future new unlock condition needs updating in *both* the page that
+   enforces it and `Dashboard.jsx`'s card list — they're two separate places that must
+   agree.
+
 ---
 
 ## Stretch 8 — Admin management (Super Admin only)

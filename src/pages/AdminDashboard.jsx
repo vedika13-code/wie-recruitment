@@ -5,7 +5,10 @@ import {
   getAdminApplication,
   setApplicationStatus,
   reviewSubmission,
+  getAdminInterviewSlots,
+  createInterviewSlot,
 } from "../api";
+import { formatSlotDate, formatSlotTime } from "../utils";
 
 const STATUS_OPTIONS = ["draft", "submitted", "shortlisted", "rejected", "selected"];
 const DOMAIN_NAMES = ["Technical", "Projects", "Management", "Editorial", "Design", "Publicity"];
@@ -69,6 +72,88 @@ DomainReview.propTypes = {
   domain: PropTypes.object.isRequired,
   onSave: PropTypes.func.isRequired,
 };
+
+function InterviewSlotManager() {
+  const [slots, setSlots] = useState([]);
+  const [form, setForm] = useState({ slotDate: "", startTime: "", endTime: "", meetLink: "", capacity: 1 });
+  const [error, setError] = useState("");
+
+  const load = () => getAdminInterviewSlots().then(setSlots);
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      await createInterviewSlot(form);
+      setForm({ slotDate: "", startTime: "", endTime: "", meetLink: "", capacity: 1 });
+      load();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div className="interview-slot-manager" style={{ marginTop: "30px" }}>
+      <h2>Interview Slots</h2>
+
+      <form onSubmit={handleCreate} style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+        <input type="date" name="slotDate" value={form.slotDate} onChange={handleChange} required />
+        <input type="time" name="startTime" value={form.startTime} onChange={handleChange} required />
+        <input type="time" name="endTime" value={form.endTime} onChange={handleChange} required />
+        <input
+          type="url"
+          name="meetLink"
+          placeholder="Meet link"
+          value={form.meetLink}
+          onChange={handleChange}
+          required
+        />
+        <input
+          type="number"
+          name="capacity"
+          min="1"
+          value={form.capacity}
+          onChange={handleChange}
+          style={{ width: "60px" }}
+          required
+        />
+        <button type="submit">Create Slot</button>
+      </form>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <table style={{ marginTop: "12px" }}>
+        <thead>
+          <tr>
+            <th>Date</th><th>Time</th><th>Meet Link</th><th>Booked / Capacity</th><th>Booked by</th>
+          </tr>
+        </thead>
+        <tbody>
+          {slots.map((s) => (
+            <tr key={s.id}>
+              <td>{formatSlotDate(s.slotDate)}</td>
+              <td>{formatSlotTime(s.startTime)}–{formatSlotTime(s.endTime)}</td>
+              <td><a href={s.meetLink} target="_blank" rel="noreferrer">{s.meetLink}</a></td>
+              <td>{s.bookedCount} / {s.capacity}</td>
+              <td>
+                {s.bookings.length === 0
+                  ? "—"
+                  : s.bookings.map((b) => b.name || b.email).join(", ")}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 function AdminDashboard() {
   const [applications, setApplications] = useState([]);
@@ -172,6 +257,8 @@ function AdminDashboard() {
           </div>
         )}
       </div>
+
+      <InterviewSlotManager />
     </div>
   );
 }

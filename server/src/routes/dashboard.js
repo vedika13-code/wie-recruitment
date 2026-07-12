@@ -37,6 +37,7 @@ router.get("/", requireAuth, async (req, res) => {
     },
     selectedDomains,
     submittedDomains,
+    applicationStatus: application?.status || "draft",
   });
 });
 

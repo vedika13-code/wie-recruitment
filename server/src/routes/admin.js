@@ -170,4 +170,60 @@ router.put("/domain-task-config/:domain", async (req, res) => {
   });
 });
 
+router.get("/interview-slots", async (req, res) => {
+  const cycle = await getActiveCycle();
+  const slots = await prisma.interviewSlot.findMany({
+    where: { cycleId: cycle.id },
+    include: { interviews: { include: { application: { include: { user: true } } } } },
+    orderBy: [{ slotDate: "asc" }, { startTime: "asc" }],
+  });
+
+  res.json(
+    slots.map((s) => ({
+      id: s.id,
+      slotDate: s.slotDate,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      meetLink: s.meetLink,
+      capacity: s.capacity,
+      bookedCount: s.interviews.length,
+      bookings: s.interviews.map((i) => ({
+        applicationId: i.applicationId,
+        name: i.application.user.name,
+        email: i.application.user.email,
+      })),
+    }))
+  );
+});
+
+router.post("/interview-slots", async (req, res) => {
+  const { slotDate, startTime, endTime, meetLink, capacity } = req.body;
+  if (!slotDate || !startTime || !endTime || !meetLink || !capacity) {
+    return res
+      .status(400)
+      .json({ error: "slotDate, startTime, endTime, meetLink, and capacity are required" });
+  }
+  if (Number(capacity) < 1) {
+    return res.status(400).json({ error: "capacity must be at least 1" });
+  }
+
+  const cycle = await getActiveCycle();
+  const slot = await prisma.interviewSlot.create({
+    data: {
+      cycleId: cycle.id,
+      createdById: req.user.id,
+      // Force UTC parsing explicitly — a bare "1970-01-01THH:MM" string (no timezone
+      // designator) is parsed as the SERVER's local time per the ECMAScript spec, which
+      // would silently shift stored times depending on where the process happens to run.
+      slotDate: new Date(`${slotDate}T00:00:00.000Z`),
+      startTime: new Date(`1970-01-01T${startTime}:00.000Z`),
+      endTime: new Date(`1970-01-01T${endTime}:00.000Z`),
+      meetLink,
+      capacity: Number(capacity),
+    },
+  });
+
+  res.json({ id: slot.id });
+});
+
 module.exports = router;

@@ -17,11 +17,15 @@ function Dashboard() {
   // in, unlike the old localStorage check which was naturally null until first save.
   const hasProfile = Boolean(data.profile.name);
 
+  // Interview unlocks once an admin has shortlisted (or later, selected) the
+  // application — matches server/src/routes/interview.js's UNLOCKED_STATUSES.
+  const interviewUnlocked = ["shortlisted", "selected"].includes(data.applicationStatus);
+
   const cards = [
     { title: "Profile", status: "available", path: "/profile" },
     { title: "Domain Selection", status: hasProfile ? "available" : "locked", path: "/domain" },
     { title: "Tasks", status: data.selectedDomains.length ? "available" : "locked", path: "/tasks" },
-    { title: "Interview", status: "locked", path: "/interview" }
+    { title: "Interview", status: interviewUnlocked ? "available" : "locked", path: "/interview" }
   ];
 
   return (
