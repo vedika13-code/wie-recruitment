@@ -226,4 +226,64 @@ router.post("/interview-slots", async (req, res) => {
   res.json({ id: slot.id });
 });
 
+const ADMIN_MANAGED_ROLES = ["admin", "super_admin"];
+
+// These three routes are additionally gated to super_admin only, on top of the
+// router-level admin-or-super_admin guard above — a regular admin must not manage
+// other admins.
+router.get("/admins", requireRole("super_admin"), async (req, res) => {
+  const admins = await prisma.user.findMany({
+    where: { role: { in: ADMIN_MANAGED_ROLES } },
+    include: { addedBy: { select: { email: true, name: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+
+  res.json(
+    admins.map((a) => ({
+      id: a.id,
+      email: a.email,
+      name: a.name,
+      role: a.role,
+      addedBy: a.addedBy ? a.addedBy.name || a.addedBy.email : null,
+    }))
+  );
+});
+
+router.post("/admins", requireRole("super_admin"), async (req, res) => {
+  const { email, role } = req.body;
+  if (!email) return res.status(400).json({ error: "email is required" });
+  if (!ADMIN_MANAGED_ROLES.includes(role)) {
+    return res.status(400).json({ error: "role must be admin or super_admin" });
+  }
+  const normalizedEmail = email.toLowerCase();
+
+  // Upsert, not create-only: this works whether the person has ever signed in
+  // before (updates their existing role) or hasn't (pre-creates the record, so
+  // their eventual first Google/dev sign-in finds it and skips the allowlist
+  // check entirely — same mechanism as the hardcoded 2026 allowlist bootstrap).
+  const user = await prisma.user.upsert({
+    where: { email: normalizedEmail },
+    update: { role, addedById: req.user.id },
+    create: { email: normalizedEmail, role, addedById: req.user.id },
+  });
+
+  res.json({ id: user.id, email: user.email, role: user.role });
+});
+
+router.delete("/admins/:id", requireRole("super_admin"), async (req, res) => {
+  if (req.params.id === req.user.id) {
+    return res.status(400).json({ error: "You cannot remove your own admin access" });
+  }
+
+  // Only ever flips role back down — the user row must never be deleted, since
+  // Submission.reviewerNotes and InterviewSlot.createdById attribution must survive
+  // removal (see docs/DECISIONS.md).
+  const user = await prisma.user.update({
+    where: { id: req.params.id },
+    data: { role: "applicant" },
+  });
+
+  res.json({ id: user.id, role: user.role });
+});
+
 module.exports = router;

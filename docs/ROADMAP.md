@@ -307,6 +307,21 @@ past reviewed submissions and any interview slots they created still display the
 correctly in the Admin Dashboard — confirm this by checking a submission they reviewed
 before removal still shows their attribution afterward.
 
+**Verified:** confirmed live — a regular admin gets 403 on `/api/admin/admins`; adding a
+brand-new email (never signed in) then dev-logging-in as that email correctly picked up
+the pre-set role; a super admin cannot remove their own access (400, blocked
+intentionally as a lockout guard, not explicitly required but a one-line safeguard worth
+having); removing a different admin immediately 403s their session and drops them from
+the admin list. History-survival was verified concretely: had a test admin create an
+interview slot and leave review notes on a submission, removed their access, then
+confirmed both the `reviewerNotes` text and the slot still return correctly via the API,
+and — checked directly at the DB level — `InterviewSlot.createdById` still resolves to
+their (now-`applicant`-role) user row, proving the FK was never broken or cascaded.
+Note: no UI actually surfaces "reviewed by X" / "slot created by X" labels (never scoped
+as a requirement — the point of this decision was preserving FK integrity/data, not
+building an attribution display), so this was verified via direct API/DB inspection
+rather than something visible in `AdminDashboard.jsx` today.
+
 ---
 
 ## Stretch 9 — Visual redesign *(last, on purpose)*

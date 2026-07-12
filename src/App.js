@@ -15,6 +15,7 @@ import Login from "./pages/Login";
 import Apply from "./pages/Apply";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminTaskConfig from "./pages/AdminTaskConfig";
+import ManageAdmins from "./pages/ManageAdmins";
 
 // Importing reusable component
 import Navbar from "./components/Navbar";
@@ -78,6 +79,29 @@ const AdminRoute = ({ children }) => {
 };
 
 AdminRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+// Stricter than AdminRoute — only super_admin, not admin. Matches the extra
+// requireRole('super_admin') layered onto the admin-management endpoints server-side.
+const SuperAdminRoute = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMe()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <Navigate to="/login" />;
+  if (user.role !== "super_admin") return <Navigate to="/dashboard" />;
+  return children;
+};
+
+SuperAdminRoute.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
@@ -208,6 +232,16 @@ function App() { // Main App Component
               <AdminTaskConfig />
             </>
           </AdminRoute>
+        } />
+
+        {/* MANAGE ADMINS (Super Admin only) */}
+        <Route path="/admin/manage-admins" element={
+          <SuperAdminRoute>
+            <>
+              <Navbar title={appName} />
+              <ManageAdmins />
+            </>
+          </SuperAdminRoute>
         } />
 
       </Routes>

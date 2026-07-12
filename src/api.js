@@ -163,3 +163,18 @@ export function createInterviewSlot({ slotDate, startTime, endTime, meetLink, ca
     body: JSON.stringify({ slotDate, startTime, endTime, meetLink, capacity }),
   });
 }
+
+export function getAdmins() {
+  return request("/api/admin/admins");
+}
+
+export function addAdmin(email, role) {
+  return request("/api/admin/admins", {
+    method: "POST",
+    body: JSON.stringify({ email, role }),
+  });
+}
+
+export function removeAdmin(id) {
+  return request(`/api/admin/admins/${id}`, { method: "DELETE" });
+}

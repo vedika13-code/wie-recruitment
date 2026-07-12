@@ -36,6 +36,9 @@ function Navbar({ title }) {{/*component representing navbar displays title top 
             <Link className={isActive("/admin/task-config")} to="/admin/task-config">Task Config</Link>
           </>
         )}
+        {role === "super_admin" && (
+          <Link className={isActive("/admin/manage-admins")} to="/admin/manage-admins">Manage Admins</Link>
+        )}
         <button type="button" onClick={handleLogout}>Logout</button>
       </div>
     </nav>
