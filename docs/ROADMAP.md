@@ -214,6 +214,18 @@ Changing a domain's task config in the admin screen is reflected the next time a
 applicant loads that domain's task page (e.g. turning on a design-file requirement for
 Publicity makes the artifact field appear for applicants who haven't submitted yet).
 
+**Verified:** confirmed live — applicant 403 on direct API call, admin sees applicants
+across all domains with working filters, submission review (score/notes) and application
+status changes both persist, and a live task-config change (Publicity → `design_file`)
+immediately showed up on that domain's task page for an applicant who hadn't submitted
+yet. **Dev-login gotcha to remember**: it only assigns a role the *first* time it sees a
+given email — logging in again with an email that already exists (e.g. reusing the
+allowlisted super_admin email to "test as an applicant") just re-enters that same
+existing account, role unchanged, regardless of what role is picked in the dev-login
+form. Always use a genuinely new email to test a different role. This isn't a bug — it
+intentionally mirrors production, where role lives in the DB after first login and isn't
+silently reset by the allowlist on every sign-in.
+
 ---
 
 ## Stretch 7 — Interview scheduling (self-service booking)

@@ -13,6 +13,8 @@ import DomainInfo from "./pages/DomainInfo";
 import Interview from "./pages/Interview";
 import Login from "./pages/Login";
 import Apply from "./pages/Apply";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminTaskConfig from "./pages/AdminTaskConfig";
 
 // Importing reusable component
 import Navbar from "./components/Navbar";
@@ -50,6 +52,32 @@ const ProtectedRoute = ({ children }) => {
 
 // Props validation
 ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+const ADMIN_ROLES = ["admin", "super_admin"];
+
+// Same session check as ProtectedRoute, plus a role check — a plain Applicant hitting
+// an /admin/* URL gets redirected, not just blocked at the API (which also enforces
+// this server-side; this is UI-side only, see server/src/routes/admin.js).
+const AdminRoute = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    getMe()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <Navigate to="/login" />;
+  if (!ADMIN_ROLES.includes(user.role)) return <Navigate to="/dashboard" />;
+  return children;
+};
+
+AdminRoute.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
@@ -160,6 +188,26 @@ function App() { // Main App Component
               <Interview />
             </>
           </ProtectedRoute>
+        } />
+
+        {/* ADMIN */}
+        <Route path="/admin" element={
+          <AdminRoute>
+            <>
+              <Navbar title={appName} />
+              <AdminDashboard />
+            </>
+          </AdminRoute>
+        } />
+
+        {/* ADMIN TASK CONFIG */}
+        <Route path="/admin/task-config" element={
+          <AdminRoute>
+            <>
+              <Navbar title={appName} />
+              <AdminTaskConfig />
+            </>
+          </AdminRoute>
         } />
 
       </Routes>

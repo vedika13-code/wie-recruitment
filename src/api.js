@@ -104,3 +104,40 @@ export function getActiveCycle() {
 export function getDashboard() {
   return request("/api/dashboard");
 }
+
+export function getAdminApplications({ domain, status } = {}) {
+  const params = new URLSearchParams();
+  if (domain) params.set("domain", domain);
+  if (status) params.set("status", status);
+  const qs = params.toString();
+  return request(`/api/admin/applications${qs ? `?${qs}` : ""}`);
+}
+
+export function getAdminApplication(id) {
+  return request(`/api/admin/applications/${id}`);
+}
+
+export function setApplicationStatus(id, status) {
+  return request(`/api/admin/applications/${id}/status`, {
+    method: "POST",
+    body: JSON.stringify({ status }),
+  });
+}
+
+export function reviewSubmission(id, { score, notes, status }) {
+  return request(`/api/admin/submissions/${id}/review`, {
+    method: "POST",
+    body: JSON.stringify({ score, notes, status }),
+  });
+}
+
+export function getDomainTaskConfig() {
+  return request("/api/admin/domain-task-config");
+}
+
+export function setDomainTaskConfig(domainName, { artifactType, artifactLabel }) {
+  return request(`/api/admin/domain-task-config/${encodeURIComponent(domainName)}`, {
+    method: "PUT",
+    body: JSON.stringify({ artifactType, artifactLabel }),
+  });
+}
