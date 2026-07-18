@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { listApplications } from "@/lib/recruitment/admin";
+import { getAdminInterviewSlots } from "@/lib/recruitment/interview";
 import GlassCard from "@/components/ui/GlassCard";
 import SectionTitle from "@/components/ui/SectionTitle";
 import AdminFilters from "@/components/recruitment/AdminFilters";
+import InterviewSlotManager from "@/components/recruitment/InterviewSlotManager";
 
 const DOMAIN_NAMES = ["Technical", "Projects", "Management", "Editorial", "Design", "Publicity"];
 const STATUS_OPTIONS = ["draft", "submitted", "shortlisted", "rejected", "selected"];
@@ -13,7 +15,10 @@ export default async function AdminApplicationsPage({
   searchParams: Promise<{ domain?: string; status?: string }>;
 }) {
   const { domain, status } = await searchParams;
-  const applications = await listApplications({ domain, status });
+  const [applications, interviewSlots] = await Promise.all([
+    listApplications({ domain, status }),
+    getAdminInterviewSlots(),
+  ]);
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-16">
@@ -47,6 +52,8 @@ export default async function AdminApplicationsPage({
           <p className="text-white/70">No applications match these filters.</p>
         )}
       </div>
+
+      <InterviewSlotManager slots={interviewSlots} />
     </main>
   );
 }
